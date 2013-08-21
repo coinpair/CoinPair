@@ -5,14 +5,18 @@ This script convienently turns the -walletnotify and -blocknotify option callbac
 
 Install
 -------
+Simply compile with gcc (will need to install on mac and windows systems)
+```
+gcc -o notify notify.c
+```
 On your favorite crypto currency client that supports notifications, like bitcoind. Modify the client configuration (the bitcoin.conf file in my case) to include a new parameter with it linking to this script, for me:
 
 ```
-walletnotify=/Users/jacobtorba/c++/notify 127.0.0.1 1337 %s
+walletnotify=/Users/jacobtorba/notify 127.0.0.1 1337 %s
 ```
 or if you need block notification:
 
 ```
-blocknotify=/Users/jacobtorba/c++/notify 127.0.0.1 1337 %s
+blocknotify=/Users/jacobtorba/notify 127.0.0.1 1337 %s
 ```
 That's it! All you need now is a program that can interpret the stream on the specified ip address and port.

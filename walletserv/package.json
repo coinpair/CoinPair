@@ -1,0 +1,14 @@
+{
+  "name": "walletserv",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "latest",
+    "tcp.js": "latest",
+    "util": "latest",
+    "bitcoin": "latest"
+  },
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.2.x"
+  }
+}

@@ -10,8 +10,8 @@
 int main(int argc, char *argv[])
 {
     if (argc < 4) {
-	printf("\n Usage: %s <hostname> <port> <TxID> \n",argv[0]);
-	exit(0);
+    	printf("\n Usage: %s <hostname> <port> <TxID> \n",argv[0]);
+    	exit(0);
     }
 
     int sockfd, portno, n;
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr,"ERROR, connecting\n");
 	exit(0);
     }
-    snprintf(buffer, sizeof(buffer), "%s",argv[3]);
+    snprintf(buffer, sizeof(buffer), "{\"type\":\"%s\", \"hash\":\"%s\"}",argv[4],argv[3]);
     n = write(sockfd, buffer, strlen(buffer));
     if (n < 0) {
 	fprintf(stderr,"ERROR, writing to socket\n");
