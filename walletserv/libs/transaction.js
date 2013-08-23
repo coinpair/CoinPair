@@ -49,28 +49,7 @@ function transaction(currency, hash, stored) {
 
 						if (self.category == 'receive') {
 
-							if (self.confirmations <= 1 && self.amount < 25) {
-								if (self.confirmations == 1) {
-									self.complete();
-									console.log('Small confirm!');
-								}
-							} else {
-								if (self.confirmations == 1) {
-									store(self.txid);
-								} else if (self.confirmations >= 6 || (self.confirmations > 1 && self.amount < self.confirmations * 25)) {
-									if (stored) {
-										console.log('Deleting!');
-										unstore(self.txid, function() {
-											self.complete();
-											console.log('Big confirm!');
-										});
-									} else {
-										self.complete();
-										console.log('big confirm w/ no delete');
-									}
-								}
-							}
-
+							self.logic(self.complete());
 
 						}
 					}
@@ -79,8 +58,39 @@ function transaction(currency, hash, stored) {
 			}
 		});
 	}
+	this.logic = function(callback) {
 
-	this.complete = function(){
+		//checking if transaction has 0 or 1 confirms while under 25 btc
+		if (self.confirmations <= 1 && self.amount < 25) {
+			//if it has 1 confirm, proccess it
+			if (self.confirmations == 1) {
+				callback();
+			}
+		} else {
+			//transactions at this point are above 25 btc
+
+			//checking if transaction has a single confirm, if so, we queue it up for later proccessing
+			if (self.confirmations == 1) {
+				store(self.txid);
+			}
+			//checking if the transaction has more than 6 confirms or if the transaction is less worth than the blocks needed to attack, if so, we proccess it
+			else if (self.confirmations >= 6 || (self.confirmations > 1 && self.amount < self.confirmations * 25)) {
+
+				//checking if the transaction we are proccessing has already been queued, if so, we proccess the transact and delete it from queue
+				if (stored) {
+					unstore(self.txid, function() {
+						callback();
+					});
+				}
+				//if not stored, we proccess but without deleting (because there is nothing to delete anyways)
+				else {
+					callback();
+				}
+			}
+		}
+	}
+
+	this.complete = function() {
 		self.emit('new');
 	}
 
@@ -88,6 +98,7 @@ function transaction(currency, hash, stored) {
 
 
 util.inherits(transaction, events);
+
 
 function unstore(hash, callback) {
 	var dir = "./unconfirmed/btc";
