@@ -6,9 +6,26 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <errno.h>
 
+void logFail(char* hash, char* type)
+{
+    FILE *f = fopen("/Users/jacobtorba/coinpair/walletscript/failed-txn.txt", "ab");
+    if (f == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+
+    fprintf(f, "%s-%s\n", type, hash);
+
+    fclose(f);
+}
 int main(int argc, char *argv[])
 {
+    
+    
     if (argc < 4) {
     	printf("\n Usage: %s <hostname> <port> <TxID> \n",argv[0]);
     	exit(0);
@@ -23,12 +40,14 @@ int main(int argc, char *argv[])
     portno = atoi(argv[2]);
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-	fprintf(stderr,"ERROR, opening socket\n");
-	exit(0);
+    	fprintf(stderr,"ERROR, opening socket\n");
+        logFail(argv[3],argv[4]);
+    	exit(0);
     }
     server = gethostbyname(argv[1]);
     if (server == NULL) {
         fprintf(stderr,"ERROR, no such host\n");
+        logFail(argv[3],argv[4]);
         exit(0);
     }
     bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -38,16 +57,18 @@ int main(int argc, char *argv[])
          server->h_length);
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) {
-	fprintf(stderr,"ERROR, connecting\n");
-	exit(0);
+    	fprintf(stderr,"ERROR, connecting\n");
+        logFail(argv[3],argv[4]);
+    	exit(0);
     }
     snprintf(buffer, sizeof(buffer), "{\"type\":\"%s\", \"hash\":\"%s\"}",argv[4],argv[3]);
     n = write(sockfd, buffer, strlen(buffer));
     if (n < 0) {
-	fprintf(stderr,"ERROR, writing to socket\n");
-	exit(0);
+    	fprintf(stderr,"ERROR, writing to socket\n");
+        logFail(argv[3],argv[4]);
+    	exit(0);
     }
-    close(sockfd);
+    close(sockfd); 
     return 0;
     exit(0);
 }

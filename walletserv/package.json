@@ -5,7 +5,8 @@
     "express": "latest",
     "tcp.js": "latest",
     "util": "latest",
-    "bitcoin": "latest"
+    "bitcoin": "latest",
+    "mkdirp": "latest"
   },
   "engines": {
     "node": "0.10.x",

@@ -1,3 +1,5 @@
 .DS_Store
 notify
 node_modules
+unconfirmed
+failed-txn.txt

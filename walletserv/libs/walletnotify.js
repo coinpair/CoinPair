@@ -5,6 +5,7 @@ var net = require('net'),
 	util = require('util'),
 	transaction = require('./transaction.js');
 
+
 function walletNotify(port) {
 
 	var self = this;
@@ -23,10 +24,9 @@ function walletNotify(port) {
 				console.log('Error parsing: ' + str);
 			}
 			else{
+				console.log('Received transact');
 				var txn = new transaction(json.type, json.hash);
-				txn.on('new', function(){
-					
-				});
+
 			}
 		});
 

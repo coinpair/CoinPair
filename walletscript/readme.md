@@ -5,7 +5,11 @@ This script convienently turns the -walletnotify and -blocknotify option callbac
 
 Install
 -------
-Simply compile with gcc (will need to install on mac and windows systems)
+Change this line with your the proper address for the txt file you want to save to in notify.c
+```
+FILE *f = fopen("/Users/jacobtorba/coinpair/walletscript/failed-txn.txt", "ab");
+```
+Compile with gcc (will need to install on mac and windows systems)
 ```
 gcc -o notify notify.c
 ```
