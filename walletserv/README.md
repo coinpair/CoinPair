@@ -9,7 +9,13 @@ Install node.js (and npm if not already included with whatever node.js package y
 ```
 npm install
 ```
-and to run the script, in the directory, run this:
+You will need to to have a proper pg database setup for the script, after setting the connection details within the script, run this to format the database properly
+```
+node db_setup.js
+```
+It should either tell you that the database has been created or that it went fine.
+
+and to start up the script, in the directory, run this:
 
 ```
 foreman start
