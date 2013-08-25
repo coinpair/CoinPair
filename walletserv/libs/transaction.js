@@ -4,13 +4,14 @@ var fs = require('fs'),
 	mkdirp = require('mkdirp'),
 	bitcoin = require('bitcoin'),
 	events = require('events').EventEmitter,
-	util = require('util');
+	util = require('util'),
+	config = require('./../config.js');
 
 var bclient = new bitcoin.Client({
-	host: 'localhost',
-	port: 8332,
-	user: 'bitcoinrpc',
-	pass: 'lolcake'
+	host: config.wallet.btc.host,
+	port: config.wallet.btc.port,
+	user: config.wallet.btc.username,
+	pass: config.wallet.btc.password
 });
 
 function transaction(currency, hash, stored) {

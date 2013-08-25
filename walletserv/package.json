@@ -6,7 +6,8 @@
     "util": "latest",
     "bitcoin": "latest",
     "mkdirp": "latest",
-    "pg": "latest"
+    "pg": "latest",
+    "bitcoin-address": "latest"
   },
   "engines": {
     "node": "0.10.x",

@@ -1,9 +1,6 @@
 //The database module!
 
-var net = require('net'),
-	pg = require('pg'),
-	events = require('events').EventEmitter,
-	util = require('util');
+var pg = require('pg');
 
 //Database structure and naming (in order of how a transaction should go)
 //The "Sender" is the address of the user, he sends bitcoins to the next entity. This is set on first transaction.
@@ -16,7 +13,6 @@ var net = require('net'),
 function database() {
 
 	var self = this;
-	var clnt = false;
 
 	pg.connect(function(err, client, done) {
 		var handleError = function(err) {
@@ -25,41 +21,77 @@ function database() {
 			next(err);
 			return true;
 		};
-		clnt = client;
-		self.emit('connection');
+		self.client = client;
 
 	});
 
+	function connect(callback) {
+
+		pg.connect(function(err, client, done) {
+			if (err) {
+				done(client);
+				callback(err);
+			}
+			else{
+				callback(false, done, client);
+			}
+			
+
+		});
+
+	}
+
 	this.create = function(input, output, receiver, callback) {
-		clnt.query("insert into addresslist (input, output, receiver) values ($1, $2, $3);", [input, output, receiver], function(err) {
-			callback(err);
+
+		connect(function(err, done, client) {
+			if (err) {
+				callback(err);
+				
+			} else {
+				client.query("insert into addresslist (input, output, receiver) values ($1, $2, $3);", [input, output, receiver], function(err) {
+					callback(err);
+					done();
+				});
+			}
 		});
 	}
 	this.backaddress = function(index, address, callback) {
-		clnt.query("update addresslist set sender=$1 where id=$2;", [address, index], function(err) {
-			callback(err);
+		connect(function(err, done, client) {
+			if (err) {
+				callback(err);
+				
+			} else {
+				client.query("update addresslist set sender=$1 where id=$2;", [address, index], function(err) {
+					callback(err);
+					done();
+				});
+			}
 		});
 	}
-	this.opposite = function(address, callback){
-		clnt.query("select * from addresslist where input=$1 or output=$1;", [address], function(err, row){
-			if(err){
+	this.opposite = function(address, callback) {
+		connect(function(err, done, client) {
+			if (err) {
 				callback(err);
-			}
-			else {
-				if(row.rows.length > 1){
-					callback('duplicate rows on address ' + address);
-				}
-				else if (row.rows.length == 0){
-					callback(false, false);
-				}
-				else{
-					callback(false, row.rows[0]);
-				}
 				
+			} else {
+				client.query("select * from addresslist where input=$1 or output=$1;", [address], function(err, row) {
+					if (err) {
+						callback(err);
+					} else {
+						if (row.rows.length > 1) {
+							callback('duplicate rows on address ' + address);
+						} else if (row.rows.length == 0) {
+							callback(false, false);
+						} else {
+							callback(false, row.rows[0]);
+						}
+
+					}
+					done();
+				});
 			}
-		})
+		});
 	}
 }
-util.inherits(database, events);
 
 module.exports = database;

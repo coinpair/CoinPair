@@ -10,7 +10,6 @@ function blockNotify(port) {
 
 	this.server = net.createServer(function(c) { //'connection' listener
 		c.on('data', function(data) {
-			console.log('block');
 			var str = data.toString();
 			var json;
 			try {
