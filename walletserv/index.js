@@ -4,20 +4,22 @@ var walletnotify = require('./libs/walletnotify.js'),
 	api = require('./libs/api.js'),
 	fs = require('fs'),
 	config = require('./config.js'),
-	address = require('./libs/address.js');
+	address = require('./libs/address.js'),
+	send = require('./libs/send.js');
 
 database = new database();
 
 
 api = new api(config.ports.api);
-
+walletnotify = new walletnotify(config.ports.wnotify);
+blocknotify = new blocknotify(config.ports.bnotify);
 
 api.on('request', function(from, to, rec, res) {
 	generateAddresses(from, to, function(err, inputAddy, outputAddy) {
 		if (err) {
 			res.send(500, 'INTERNAL ERROR');
 		} else {
-			createRow(inputAddy, outputAddy, rec, function(err) {
+			createRow(inputAddy, outputAddy, rec, from, to, function(err) {
 				if (err) {
 					res.send(500, 'INTERNAL ERROR');
 				} else {
@@ -31,10 +33,41 @@ api.on('request', function(from, to, rec, res) {
 	});
 
 });
+walletnotify.on('payment', function(txn){
+	received(txn);
+});
+blocknotify.on('payment', function(txn){
+	received(txn);
+});
 
+function received(txn){
+	console.log('Received!');
+	database.row(txn.address, function(err, row){
+		if(err){
+			console.log('COULDNT PROCESS ' + txn.txid);
+			console.log('DB ERROR: ' + err);
+		}
+		else {
+			var opp;
+			if(row == false){
+				console.log('unconnected receive ' + txn.txid);
+				return false;
+			}
+			else if(row.input == txn.address){
+				console.log('Receive!');
+				opp = [txn.output, txn.receiver];
+			}
+			else if(row.output == txn.address) {
+				console.log('Reverse!');
+				opp = [txn.input, txn.sender];
+			}
+			send('btc', opp[1], txn.amount);
+		}
+	});
+}
 
-function createRow(input, output, receiver, callback) {
-	database.create(input, output, receiver, function(err) {
+function createRow(input, output, receiver, from, to, callback) {
+	database.create(input, output, receiver, from, to, function(err) {
 		if (err) {
 			console.log('database add err: ' + err);
 			callback(true);
@@ -61,10 +94,3 @@ function generateAddresses(from, to, callback) {
 		}
 	});
 }
-
-walletnotify = new walletnotify(config.ports.wnotify);
-blocknotify = new blocknotify(config.ports.bnotify);
-
-walletnotify.on('payment', function(data) {
-	console.log(data);
-});

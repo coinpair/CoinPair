@@ -20,12 +20,13 @@ function walletNotify(port) {
 				// invalid json input, set to null
 				json = null
 			}
-			if(json == null){
+			if (json == null) {
 				console.log('Error parsing: ' + str);
-			}
-			else{
-				console.log('Received transact');
+			} else {
 				var txn = new transaction(json.type, json.hash);
+				txn.on('payment', function(transact) {
+					self.emit('payment', transact);
+				});
 
 			}
 		});

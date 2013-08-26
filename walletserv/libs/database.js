@@ -8,7 +8,7 @@ var pg = require('pg');
 //"Output", this is the address forwarding sender, this sends to whatever address the user specifies
 //"Receiver", the intended goal from the player, this is the person the user wants to send to
 
-//from database setup file: id serial, sender varchar(35), input varchar(35), output varchar(35), receiver varchar(35)
+//from database setup file: id serial, sender varchar(35), input varchar(35), output varchar(35), receiver varchar(35), fromcurrency varchar(3), tocurrency varchar(3)
 
 function database() {
 
@@ -41,20 +41,20 @@ function database() {
 
 	}
 
-	this.create = function(input, output, receiver, callback) {
-
+	this.create = function(input, output, receiver, from, to, callback) {
 		connect(function(err, done, client) {
 			if (err) {
 				callback(err);
 				
 			} else {
-				client.query("insert into addresslist (input, output, receiver) values ($1, $2, $3);", [input, output, receiver], function(err) {
+				client.query("insert into addresslist (input, output, receiver, fromcurrency, tocurrency) values ($1, $2, $3, $4, $5);", [input, output, receiver, from, to], function(err) {
 					callback(err);
 					done();
 				});
 			}
 		});
 	}
+
 	this.backaddress = function(index, address, callback) {
 		connect(function(err, done, client) {
 			if (err) {
@@ -68,7 +68,7 @@ function database() {
 			}
 		});
 	}
-	this.opposite = function(address, callback) {
+	this.row = function(address, callback) {
 		connect(function(err, done, client) {
 			if (err) {
 				callback(err);

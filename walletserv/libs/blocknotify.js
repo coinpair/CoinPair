@@ -2,9 +2,11 @@
 
 var net = require('net'),
 	transaction = require('./transaction.js'),
+	events = require('events').EventEmitter,
+	util = require('util'),
 	fs = require('fs');
 
-function blockNotify(port) {
+function blockNotify(port, callback) {
 
 	var self = this;
 
@@ -35,10 +37,9 @@ function blockNotify(port) {
 									if (!err) {
 										var txn = new transaction('btc', text, true);
 
-										txn.on('new', function(){
-											console.log('Proccessed!');
+										txn.on('payment', function(transact) {
+											self.emit('payment', transact);
 										});
-										console.log(text);
 									}
 								});
 							}
@@ -53,6 +54,6 @@ function blockNotify(port) {
 	this.server.listen(port);
 }
 
-
+util.inherits(blockNotify, events);
 
 module.exports = blockNotify;

@@ -50,7 +50,7 @@ function transaction(currency, hash, stored) {
 
 						if (self.category == 'receive') {
 
-							self.logic(self.complete());
+							self.logic(self.complete);
 
 						}
 					}
@@ -59,6 +59,7 @@ function transaction(currency, hash, stored) {
 			}
 		});
 	}
+
 	this.logic = function(callback) {
 
 		//checking if transaction has 0 or 1 confirms while under 25 btc
@@ -92,7 +93,7 @@ function transaction(currency, hash, stored) {
 	}
 
 	this.complete = function() {
-		self.emit('new');
+		self.emit('payment', self);
 	}
 
 }
