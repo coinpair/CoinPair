@@ -21,12 +21,14 @@ function transaction(currency, hash, stored) {
 	this.txid = hash || '';
 	this.address = '';
 	this.category = '';
+	this.currency = currency;
 	this.raw;
 	if (typeof stored === undefined) {
 		stored = false;
 	}
 
 	if (currency == "btc") {
+
 		bclient.getTransaction(hash, function(err, data) {
 			if (err) {
 				console.log('Get transaction err: ' + err);
@@ -63,10 +65,13 @@ function transaction(currency, hash, stored) {
 	this.logic = function(callback) {
 
 		//checking if transaction has 0 or 1 confirms while under 25 btc
-		if (self.confirmations <= 1 && self.amount < 25) {
+		if (self.amount < 25) {
 			//if it has 1 confirm, proccess it
-			if (self.confirmations == 1) {
+			if (self.confirmations >= 1) {
 				callback();
+			}
+			else {
+				console.log('Received payment to ' + self.address);
 			}
 		} else {
 			//transactions at this point are above 25 btc
@@ -93,6 +98,7 @@ function transaction(currency, hash, stored) {
 	}
 
 	this.complete = function() {
+		console.log('Processing payment ' + self.amount + ' ' + self.currency + ' to ' + self.address);
 		self.emit('payment', self);
 	}
 

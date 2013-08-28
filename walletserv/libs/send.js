@@ -12,11 +12,11 @@ var bclient = new bitcoin.Client({
 
 function send(currency, address, amount) {
 	if (currency == "btc") {
-		bclient.sendToAddress(adress, amount, function(err) {
+		bclient.sendToAddress(address, amount, function(err) {
 			if (err) {
 				console.log('send fail: ' + err);
 			} else {
-				console.log('Sent ' + amount + ' ' + currency);
+				console.log('Sent ' + amount + ' ' + currency + ' to ' + address);
 			}
 		});
 	}
