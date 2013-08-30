@@ -24,7 +24,7 @@ api.on('request', function(from, to, rec, res) {
 				if (err) {
 					res.send(500, 'INTERNAL ERROR');
 				} else {
-					res.json({
+					res.jsonp({
 						address: inputAddy,
 						sendfrom: outputAddy
 					});

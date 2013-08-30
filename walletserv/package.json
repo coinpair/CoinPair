@@ -7,7 +7,8 @@
     "bitcoin": "latest",
     "mkdirp": "latest",
     "pg": "latest",
-    "bitcoin-address": "latest"
+    "bitcoin-address": "latest",
+    "btce": "latest"
   },
   "engines": {
     "node": "0.10.x",

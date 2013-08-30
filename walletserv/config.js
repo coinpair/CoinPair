@@ -24,5 +24,9 @@ config.wallet.btc.password = 'lolcake';
 config.wallet.btc.port = 8332;
 config.wallet.btc.host = 'localhost';
 
+//btce details
+config.btce = {}
+config.btce.key = '4PIMC2Z5-CVNDK5FS-IH2Q02OG-UTN70CJ9-PNZZP7JC';
+config.btce.secret = '623bbcfe86dc284c91f7733efb6e72f772ea904186d018a1ac8443da33f87a2f';
 
 module.exports = config;
