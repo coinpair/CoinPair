@@ -1,5 +1,7 @@
-var pg = require('pg');
+var pg = require('pg'),
+	config = require('./config.js');
 
+pg = new pg.Client(config.database.string);
 
 pg.connect(function(err, client, done) {
 	if (err) {
@@ -12,7 +14,7 @@ pg.connect(function(err, client, done) {
 			} else {
 				console.log('Database created!');
 			}
-			done();
+			//done();
 		});
 	}
 });

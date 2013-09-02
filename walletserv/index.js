@@ -6,15 +6,23 @@ var walletnotify = require('./libs/walletnotify.js'),
 	fs = require('fs'),
 	config = require('./config.js'),
 	address = require('./libs/address.js'),
-	send = require('./libs/send.js');
-
+	send = require('./libs/send.js'),
+	rate = require('./libs/rate.js');
 //setting up our services
 database = new database();
 api = new api(config.ports.api);
 walletnotify = new walletnotify(config.ports.wnotify);
 blocknotify = new blocknotify(config.ports.bnotify);
 
+walletnotify.on('received', function(type){
+	console.log('Received call for ' + type);
+});
+blocknotify.on('received', function(){
+	console.log('Block');
+});
+
 //Dealing with api requests for a bitcoin address
+
 api.on('request', function(from, to, rec, res) {
 	generateAddresses(from, to, function(err, inputAddy, outputAddy) {
 		if (err) {
@@ -65,33 +73,52 @@ function generateAddresses(from, to, callback) {
 }
 
 //handling the events for when a transaction becomes confirmed and needs to be processed
-walletnotify.on('payment', function(txn){
+walletnotify.on('payment', function(txn) {
 	received(txn);
 });
-blocknotify.on('payment', function(txn){
+blocknotify.on('payment', function(txn) {
 	received(txn);
 });
-function received(txn){
-	database.row(txn.address, function(err, row){
-		if(err){
+
+function received(txn) {
+	database.row(txn.address, function(err, row) {
+		if (err) {
 			console.log('COULDNT PROCESS ' + txn.txid);
 			console.log('DB ERROR: ' + err);
-		}
-		else {
-			var address;
-			if(row == false){
+		} else {
+			var address, currency, otherCurrency;
+			if (row == false) {
 				console.log('unconnected receive ' + txn.txid);
 				return false;
-			}
-			else if(row.input == txn.address){
+			} else if (row.input == txn.address) {
 				address = row.receiver;
-			}
-			else if(row.output == txn.address) {
+				currency = row.tocurrency;
+				otherCurrency = row.fromcurrency;
+			} else if (row.output == txn.address) {
 				address = row.sender;
+				currency = row.fromcurrency;
+				otherCurrency = row.tocurrency;
 			}
+			rate(otherCurrency, currency, function(err, rate) {
+				if (err) {
+					console.log('Exchange error: ' + err);
+				} else {
+					if (config.fee > 1) {
+						fee = 1;
+						console.log('Watch out the fee takes 100% of transaction!');
+					} else if (config.fee > .25) {
+						fee = config.fee;
+						console.log('Fee takes more than 25% of transaction!');
+					} else {
+						fee = config.fee;
+					}
+					rate('ltc', 'btc', function(err, rate) {
+						console.log(rate);
+					});
+					send(currency, address, txn.amount * rate * (1 - fee) );
+				}
+			});
 
-			send('btc', address, txn.amount);
 		}
 	});
 }
-

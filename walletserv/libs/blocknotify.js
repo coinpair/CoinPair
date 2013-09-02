@@ -23,28 +23,20 @@ function blockNotify(port, callback) {
 			if (json == null) {
 				console.log('Error parsing: ' + str);
 			} else {
-				var dir = './unconfirmed/btc/';
+				var dir = './unconfirmed/' + json.type + '/';
+				self.emit('received');
 
-				fs.readdir(dir, function(err, files) {
-					if (err) {
-						console.log('readdir err: ' + err);
-					} else {
+				process(dir, function(name, currency) {
+					fs.readFile(dir + name, 'utf-8', function(err, text) {
+						if (!err) {
+							var txn = new transaction(currencys, text, true);
 
-						files.forEach(function(file) {
-							var str = file.substr(file.length - 4);
-							if (str == '.txt') {
-								fs.readFile(dir + file, 'utf-8', function(err, text) {
-									if (!err) {
-										var txn = new transaction('btc', text, true);
-
-										txn.on('payment', function(transact) {
-											self.emit('payment', transact);
-										});
-									}
-								});
-							}
-						});
-					}
+							txn.on('payment', function(transact) {
+								self.emit('payment', transact);
+							});
+						}
+					});
+					s
 				});
 			}
 		});
@@ -55,5 +47,18 @@ function blockNotify(port, callback) {
 }
 
 util.inherits(blockNotify, events);
+
+function process(dir, callback) {
+	fs.readdir(dir, function(err, file) {
+		if (err) {
+			//console.log('readdir err: ' + err);
+		} else {
+			var str = file.substr(file.length - 4);
+			if (str == '.txt') {
+				callback(file, curDir)
+			}
+		}
+	});
+}
 
 module.exports = blockNotify;

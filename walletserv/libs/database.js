@@ -1,6 +1,8 @@
 //The database module!
 
-var pg = require('pg');
+var pg = require('pg'),
+	config = require('./../config.js');
+
 
 //Database structure and naming (in order of how a transaction should go)
 //The "Sender" is the address of the user, he sends bitcoins to the next entity. This is set on first transaction.
@@ -14,38 +16,37 @@ function database() {
 
 	var self = this;
 
-	pg.connect(function(err, client, done) {
-		var handleError = function(err) {
-			if (!err) return false;
-			done(client);
-			next(err);
-			return true;
-		};
-		self.client = client;
-
-	});
-
 	function connect(callback) {
-
-		pg.connect(function(err, client, done) {
+		pg.connect(config.database.string,function(err, client, done) {
 			if (err) {
 				done(client);
 				callback(err);
-			}
-			else{
+			} else {
 				callback(false, done, client);
 			}
-			
+
 
 		});
 
+	}
+	this.test = function() {
+		connect(function(err, done, client) {
+			if (err) {
+				console.log('Test error: ' + err);
+
+			} else {
+				client.query('select * from addresslist;', function(err, rows){
+					console.log(rows);
+				});
+			}
+		});
 	}
 
 	this.create = function(input, output, receiver, from, to, callback) {
 		connect(function(err, done, client) {
 			if (err) {
-				callback(err);
-				
+				callback('Create error: ' + err);
+
 			} else {
 				client.query("insert into addresslist (input, output, receiver, fromcurrency, tocurrency) values ($1, $2, $3, $4, $5);", [input, output, receiver, from, to], function(err) {
 					callback(err);
@@ -59,7 +60,7 @@ function database() {
 		connect(function(err, done, client) {
 			if (err) {
 				callback(err);
-				
+
 			} else {
 				client.query("update addresslist set sender=$1 where id=$2;", [address, index], function(err) {
 					callback(err);
@@ -72,7 +73,7 @@ function database() {
 		connect(function(err, done, client) {
 			if (err) {
 				callback(err);
-				
+
 			} else {
 				client.query("select * from addresslist where input=$1 or output=$1;", [address], function(err, row) {
 					if (err) {

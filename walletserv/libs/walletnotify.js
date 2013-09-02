@@ -23,6 +23,8 @@ function walletNotify(port) {
 			if (json == null) {
 				console.log('Error parsing: ' + str);
 			} else {
+				self.emit('received', json.type);
+
 				var txn = new transaction(json.type, json.hash);
 				txn.on('payment', function(transact) {
 					self.emit('payment', transact);

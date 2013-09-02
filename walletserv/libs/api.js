@@ -7,8 +7,8 @@ var express = require('express'),
 
 var app = express();
 
-var allowedFrom = ['btc'];
-var allowedTo = ['btc'];
+var allowedFrom = config.allow.from;
+var allowedTo = config.allow.to;
 
 function api(port) {
 	var self = this;
@@ -34,7 +34,9 @@ function api(port) {
 			res.send(404, 'NOT FOUND');
 		}
 	});
-
+	app.on('error', function(err){
+		console.log(err);
+	});
 	app.listen(port);
 }
 

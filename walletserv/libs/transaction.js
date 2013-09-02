@@ -14,6 +14,13 @@ var bclient = new bitcoin.Client({
 	pass: config.wallet.btc.password
 });
 
+var lclient = new bitcoin.Client({
+	host: config.wallet.ltc.host,
+	port: config.wallet.ltc.port,
+	user: config.wallet.ltc.username,
+	pass: config.wallet.ltc.password
+});
+
 function transaction(currency, hash, stored) {
 	var self = this;
 	this.confirmations = 0;
@@ -28,8 +35,14 @@ function transaction(currency, hash, stored) {
 	}
 
 	if (currency == "btc") {
+		self.process(bclient, hash);
+	}
+	else if (currency == "btc") {
+		self.process(lclient, hash);
+	}
 
-		bclient.getTransaction(hash, function(err, data) {
+	this.process = function(client, hash) {
+		client.getTransaction(hash, function(err, data) {
 			if (err) {
 				console.log('Get transaction err: ' + err);
 			} else {
@@ -59,9 +72,8 @@ function transaction(currency, hash, stored) {
 				}
 
 			}
-		});
+		});s
 	}
-
 	this.logic = function(callback) {
 
 		//checking if transaction has 0 or 1 confirms while under 25 btc
@@ -69,8 +81,7 @@ function transaction(currency, hash, stored) {
 			//if it has 1 confirm, proccess it
 			if (self.confirmations >= 1) {
 				callback();
-			}
-			else {
+			} else {
 				console.log('Received payment to ' + self.address);
 			}
 		} else {
@@ -78,14 +89,14 @@ function transaction(currency, hash, stored) {
 
 			//checking if transaction has a single confirm, if so, we queue it up for later proccessing
 			if (self.confirmations == 1) {
-				store(self.txid);
+				store(self.txid, self.currency);
 			}
 			//checking if the transaction has more than 6 confirms or if the transaction is less worth than the blocks needed to attack, if so, we proccess it
 			else if (self.confirmations >= 6 || (self.confirmations > 1 && self.amount < self.confirmations * 25)) {
 
 				//checking if the transaction we are proccessing has already been queued, if so, we proccess the transact and delete it from queue
 				if (stored) {
-					unstore(self.txid, function() {
+					unstore(self.txid, self.currency, function() {
 						callback();
 					});
 				}
@@ -108,8 +119,8 @@ function transaction(currency, hash, stored) {
 util.inherits(transaction, events);
 
 
-function unstore(hash, callback) {
-	var dir = "./unconfirmed/btc";
+function unstore(hash, currency, callback) {
+	var dir = "./unconfirmed/" + currency;
 
 	fs.unlink(dir + '/' + hash + ".txt", hash, function(err) {
 		if (err) {
@@ -123,8 +134,8 @@ function unstore(hash, callback) {
 	});
 }
 
-function store(hash) {
-	var dir = "./unconfirmed/btc";
+function store(hash, currency) {
+	var dir = "./unconfirmed/" + currency;
 
 	mkdirp(dir, function(err) {
 		if (err) console.error('mkdir err: ' + err)
