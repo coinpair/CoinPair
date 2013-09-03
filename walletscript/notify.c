@@ -1,34 +1,16 @@
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
 #include <errno.h>
-
-#ifdef WIN32
-    #include <winsock2.h>
-    #define bzero(b,len) (memset((b), '\0', (len)), (void) 0)  
-    #define bcopy(b1,b2,len) (memmove((b2), (b1), (len)), (void) 0)
-    #include <direct.h>
-    #define GetCurrentDir _getcwd
-#else
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <errno.h>
-    #include <unistd.h>
-    #define GetCurrentDir getcwd
-#endif
 
 void logFail(char* hash, char* type)
 {
-    char cwd[1024];
-    if (GetCurrentDir(cwd, sizeof(cwd)) == NULL)
-    {
-        perror("GetCurrentDir() error");
-        exit(0);
-    }
-
-    FILE *f = fopen(strcat(cwd,"/failed-txn.txt"), "ab");
+    FILE *f = fopen("/Users/jacobtorba/coinpair/walletscript/failed-txn.txt", "ab");
     if (f == NULL)
     {
         printf("Error opening file!\n");
@@ -43,9 +25,9 @@ void logFail(char* hash, char* type)
 int main(int argc, char *argv[])
 {
     
-
-    if (argc < 5) {
-    	printf("\n Usage: %s <hostname> <port> <TxID> <currency>\n",argv[0]);
+    
+    if (argc < 4) {
+    	printf("\n Usage: %s <hostname> <port> <TxID> \n",argv[0]);
     	exit(0);
     }
 
