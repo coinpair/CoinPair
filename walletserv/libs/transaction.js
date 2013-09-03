@@ -35,13 +35,13 @@ function transaction(currency, hash, stored) {
 	}
 
 	if (currency == "btc") {
-		self.process(bclient, hash);
+		process(bclient, hash);
 	}
 	else if (currency == "btc") {
-		self.process(lclient, hash);
+		process(lclient, hash);
 	}
 
-	this.process = function(client, hash) {
+	function process(client, hash) {
 		client.getTransaction(hash, function(err, data) {
 			if (err) {
 				console.log('Get transaction err: ' + err);
@@ -72,7 +72,7 @@ function transaction(currency, hash, stored) {
 				}
 
 			}
-		});s
+		});
 	}
 	this.logic = function(callback) {
 

@@ -12,7 +12,7 @@ config.directory = {};
 
 //The ports used for services
 config.ports.api = 5111;
-config.ports.wnotify = 11337; //port to listen to for wallet notifications
+config.ports.wnotify = 1337; //port to listen to for wallet notifications
 config.ports.bnotify = 1338; //port to listen for block notifications
 
 //What to allow
@@ -32,7 +32,7 @@ config.wallet.btc.host = 'localhost';
 config.wallet.ltc = {};
 config.wallet.ltc.username = 'bitcoinrpc';
 config.wallet.ltc.password = 'lolcake';
-config.wallet.ltc.port = 18333;
+config.wallet.ltc.port = 19332;
 config.wallet.ltc.host = 'localhost';
 
 //btce details
@@ -42,7 +42,7 @@ config.btce.secret = '623bbcfe86dc284c91f7733efb6e72f772ea904186d018a1ac8443da33
 
 //database!
 config.database = {};
-config.database.string = "postgres://jacob:dev@localhost/test";
+config.database.string = "postgres://postgres:dev@localhost/postgres";
 
 //fee!
 config.fee = 0.01;

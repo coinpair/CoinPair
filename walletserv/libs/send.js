@@ -10,16 +10,29 @@ var bclient = new bitcoin.Client({
 	pass: config.wallet.btc.password
 });
 
+var lclient = new bitcoin.Client({
+	host: config.wallet.ltc.host,
+	port: config.wallet.ltc.port,
+	user: config.wallet.ltc.username,
+	pass: config.wallet.ltc.password
+});
+
 function send(currency, address, amount) {
 	if (currency == "btc") {
-		bclient.sendToAddress(address, amount, function(err) {
-			if (err) {
-				console.log('send fail: ' + err);
-			} else {
-				console.log('Sent ' + amount + ' ' + currency + ' to ' + address);
-			}
-		});
+		standardSend(bclient, address, amount);
+	}
+	else if (currency == "ltc") {
+		standardSend(lclient, address, amount);
 	}
 }
 
+function standardSend(client, address, amount) {
+	client.sendToAddress(address, amount, function(err) {
+		if (err) {
+			console.log('send fail: ' + err);
+		} else {
+			console.log('Sent ' + amount + ' ' + currency + ' to ' + address);
+		}
+	});
+}
 module.exports = send;

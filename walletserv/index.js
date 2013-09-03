@@ -99,7 +99,7 @@ function received(txn) {
 				currency = row.fromcurrency;
 				otherCurrency = row.tocurrency;
 			}
-			rate(otherCurrency, currency, function(err, rate) {
+			rate(otherCurrency, currency, function(err, conversionRate) {
 				if (err) {
 					console.log('Exchange error: ' + err);
 				} else {
@@ -112,10 +112,10 @@ function received(txn) {
 					} else {
 						fee = config.fee;
 					}
-					rate('ltc', 'btc', function(err, rate) {
-						console.log(rate);
-					});
-					send(currency, address, txn.amount * rate * (1 - fee) );
+					var sendAmount = txn.amount * conversionRate * (1 - fee);
+
+					console.log('sending ' + sendAmount + ' ' + currency + ' to ' + address + ' after initial ' + txn.amount + ' ' + otherCurrency);
+					send(currency, address, txn.amount * conversionRate * (1 - fee) );
 				}
 			});
 
