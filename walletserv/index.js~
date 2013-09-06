@@ -7,13 +7,12 @@ var walletnotify = require('./libs/walletnotify.js'),
 	config = require('./config.js'),
 	address = require('./libs/address.js'),
 	send = require('./libs/send.js'),
-	rate = require('./libs/rate.js'),
-    pending = require('./libs/pending.js');
+	rate = require('./libs/rate.js');
 //setting up our services
 database = new database();
 api = new api(config.ports.api);
-walletnotify = new walletnotify(config.ports.wnotify, pending);
-blocknotify = new blocknotify(config.ports.bnotify, pending);
+walletnotify = new walletnotify(config.ports.wnotify);
+blocknotify = new blocknotify(config.ports.bnotify);
 
 walletnotify.on('received', function(type){
 	console.log('Received call for ' + type);

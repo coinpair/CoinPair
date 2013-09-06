@@ -21,7 +21,7 @@ var lclient = new bitcoin.Client({
 	pass: config.wallet.ltc.password
 });
 
-function transaction(tracker, currency, hash, stored) {
+function transaction(currency, hash, stored) {
 	var self = this;
 	this.confirmations = 0;
 	this.amount = 0;
@@ -80,10 +80,8 @@ function transaction(tracker, currency, hash, stored) {
 		if (self.amount < 25) {
 			//if it has 1 confirm, proccess it
 			if (self.confirmations >= 1) {
-                tracker.remove(self.txid);
 				callback();
 			} else {
-                tracker.add(self.txid);
 				console.log('Received payment to ' + self.address);
 			}
 		} else {

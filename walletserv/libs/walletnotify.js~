@@ -6,7 +6,7 @@ var net = require('net'),
 	transaction = require('./transaction.js');
 
 
-function walletNotify(port, pending) {
+function walletNotify(port) {
 
 	var self = this;
 
@@ -25,7 +25,7 @@ function walletNotify(port, pending) {
 			} else {
 				self.emit('received', json.type);
 
-				var txn = new transaction(pending, json.type, json.hash);
+				var txn = new transaction(json.type, json.hash);
 				txn.on('payment', function(transact) {
 					self.emit('payment', transact);
 				});

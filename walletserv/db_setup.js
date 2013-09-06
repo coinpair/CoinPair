@@ -14,7 +14,7 @@ pg.connect(function(err, client, done) {
 			} else {
 				console.log('Database created!');
 			}
-			//done();
+		    //done();
 		});
 	}
 });
