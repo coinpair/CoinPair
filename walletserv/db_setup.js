@@ -8,7 +8,7 @@ pg.connect(function(err, client, done) {
 		console.log('setup err: ' + err);
 	} else {
 		connected = true;
-		client.query('CREATE TABLE IF NOT EXISTS addresslist (id serial, sender varchar(35), input varchar(35), output varchar(35), receiver varchar(35), fromcurrency varchar(3), tocurrency varchar(3) );', function(err, response) {
+		client.query('CREATE TABLE IF NOT EXISTS addresslist (id serial, sender varchar(35), input varchar(35), output varchar(35), receiver varchar(35), fromcurrency varchar(3), tocurrency varchar(3), secureid varchar(20));', function(err, response) {
 			if (err) {
 				console.log('ubase create err: ' + err);
 			} else {

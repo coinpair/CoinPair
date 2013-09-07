@@ -9,6 +9,8 @@ var walletnotify = require('./libs/walletnotify.js'),
 	send = require('./libs/send.js'),
 	rate = require('./libs/rate.js'),
     pending = require('./libs/pending.js');
+
+
 //setting up our services
 database = new database();
 api = new api(config.ports.api);
