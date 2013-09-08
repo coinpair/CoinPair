@@ -10,7 +10,7 @@ var app = express();
 var allowedFrom = config.allow.from;
 var allowedTo = config.allow.to;
 
-function api(port) {
+function api(port, pending) {
 	var self = this;
 
 	app.get('/:from-:to/:rec', function(req, res) {
@@ -34,10 +34,32 @@ function api(port) {
 			res.send(404, 'NOT FOUND');
 		}
 	});
-	app.on('error', function(err){
+
+	app.get('/list/:address', function(req, res) {
+		if (isset(req.params.address)) {
+			pending.findAddy(req.params.address, function(result) {
+				if (result) {
+					res.jsonp({
+						status: 'found',
+						txn: result
+					});
+				} else {
+					res.jsonp({
+						status: 'notfound'
+					})
+				}
+			});
+		} else {
+			res.send(404, 'NOT FOUND');
+		}
+	});
+
+	app.on('error', function(err) {
 		console.log(err);
 	});
+
 	app.listen(port);
+
 }
 
 util.inherits(api, events);

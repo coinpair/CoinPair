@@ -76,6 +76,7 @@ function transaction(tracker, currency, hash, stored) {
 	}
 	this.logic = function(callback) {
 
+
 		//checking if transaction has 0 or 1 confirms while under 25 btc
 		if (self.amount < 25) {
 			//if it has 1 confirm, proccess it
@@ -83,8 +84,8 @@ function transaction(tracker, currency, hash, stored) {
                 tracker.remove(self.txid);
 				callback();
 			} else {
-                tracker.add(self.txid);
 				console.log('Received payment to ' + self.address);
+				tracker.add(self.txid, self.confirmations, self.address);
 			}
 		} else {
 			//transactions at this point are above 25 btc
@@ -95,16 +96,18 @@ function transaction(tracker, currency, hash, stored) {
 			}
 			//checking if the transaction has more than 6 confirms or if the transaction is less worth than the blocks needed to attack, if so, we proccess it
 			else if (self.confirmations >= 6 || (self.confirmations > 1 && self.amount < self.confirmations * 25)) {
-
+				tracker.add(self.txid, self.confirmations, self.address);
 				//checking if the transaction we are proccessing has already been queued, if so, we proccess the transact and delete it from queue
 				if (stored) {
 					unstore(self.txid, self.currency, function() {
 						callback();
+						tracker.remove(self.txid);
 					});
 				}
 				//if not stored, we proccess but without deleting (because there is nothing to delete anyways)
 				else {
 					callback();
+					tracker.remove(self.txid);
 				}
 			}
 		}

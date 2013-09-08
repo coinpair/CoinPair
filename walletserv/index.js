@@ -12,8 +12,10 @@ var walletnotify = require('./libs/walletnotify.js'),
 
 
 //setting up our services
+pending = new pending();
+
 database = new database();
-api = new api(config.ports.api);
+api = new api(config.ports.api, pending);
 walletnotify = new walletnotify(config.ports.wnotify, pending);
 blocknotify = new blocknotify(config.ports.bnotify, pending);
 
