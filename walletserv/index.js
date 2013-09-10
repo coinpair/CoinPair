@@ -26,6 +26,10 @@ blocknotify.on('received', function(){
 	console.log('Block');
 });
 
+pending.on('status', function(txn){
+	console.log('Updating txn status!');
+	api.socketUpdate(txn.address, txn);
+});
 //Dealing with api requests for a bitcoin address
 
 api.on('request', function(from, to, rec, res) {

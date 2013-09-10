@@ -1,17 +1,21 @@
 //The api module!
-var express = require('express'),
+var app = require('express')(),
 	events = require('events').EventEmitter,
 	util = require('util'),
 	config = require('./../config.js'),
-	addy = require('bitcoin-address');
-
-var app = express();
+	addy = require('bitcoin-address'),
+	server = require('http').createServer(app),
+	io = require('socket.io').listen(server);;
 
 var allowedFrom = config.allow.from;
 var allowedTo = config.allow.to;
 
 function api(port, pending) {
 	var self = this;
+
+	self.socketUpdate = function(room, data){
+		io.sockets. in (room).emit('update', data);
+	};
 
 	app.get('/:from-:to/:rec', function(req, res) {
 		if (allowedFrom.indexOf(req.params.from) != -1) {
@@ -33,6 +37,30 @@ function api(port, pending) {
 		} else {
 			res.send(404, 'NOT FOUND');
 		}
+	});
+
+	io.sockets.on('connection', function(socket) {
+		socket.on('subscribe', function(room) {
+			console.log('joining room', room);
+			socket.join(room);
+
+			io.sockets. in (room + 'facs').emit('update', 'jel');
+		})
+
+		socket.on('unsubscribe', function(room) {
+			console.log('leaving room', room);
+			socket.leave(room);
+		})
+
+		socket.on('send', function(data) {
+			console.log('sending message');
+			io.sockets. in (data.room).emit('message', data);
+		});
+	});
+
+	app.get('/debug/', function(req, res) {
+		res.send('Debuginn!');
+
 	});
 
 	app.get('/list/:address', function(req, res) {
@@ -58,7 +86,7 @@ function api(port, pending) {
 		console.log(err);
 	});
 
-	app.listen(port);
+	server.listen(port);
 
 }
 

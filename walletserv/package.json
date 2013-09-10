@@ -9,7 +9,8 @@
     "pg": "latest",
     "bitcoin-address": "latest",
     "btce": "latest",
-    "async": "latest"
+    "async": "latest",
+    "socket.io": "latest"
   },
   "engines": {
     "node": "0.10.x",

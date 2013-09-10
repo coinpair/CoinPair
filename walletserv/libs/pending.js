@@ -41,6 +41,10 @@ function pending() {
         }
     }
 
+    this.alert = function(changed){
+        self.emit('status', changed);
+    }
+
     this.remove = function(hash) {
         self.find(hash, function(result){
             if(result){
@@ -144,5 +148,7 @@ function readDir(dir, callbackFinal) {
         }
     });
 }
+
+util.inherits(pending, events);
 
 module.exports = pending;
