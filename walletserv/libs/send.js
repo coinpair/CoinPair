@@ -31,7 +31,7 @@ function standardSend(client, address, amount) {
 		if (err) {
 			console.log('send fail: ' + err);
 		} else {
-			console.log('Sent ' + amount + ' ' + currency + ' to ' + address);
+			console.log('Sent ' + amount + ' to ' + address);
 		}
 	});
 }

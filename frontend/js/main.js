@@ -22,7 +22,7 @@ $(document).ready(function() {
 
 function request(pair, address, callback) {
 	$.ajax({
-		url: "http://127.0.0.1:5000/" + pair + "/" + address,
+		url: "http://127.0.0.1:5111/" + pair + "/" + address,
 		dataType: "jsonp",
 		async: false,
 		type: 'get',

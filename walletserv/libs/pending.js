@@ -2,7 +2,8 @@
 
 var events = require('events').EventEmitter,
     fs = require('fs'),
-    async = require('async');
+    async = require('async'),
+    util = require('util');
 
 var lastChecked = 0;
 
@@ -13,7 +14,7 @@ function pending() {
     this.pendArrayFiled = []; //The pending saved arrays, for all transactions in hold
 
     this.add = function(hash, conf, address, check) {
-
+        console.log('Adding!');
         if (typeof check === 'undefined') {
             check = true;
             console.log('Adding hash ' + hash + ' with ' + conf + ' to tracker');
@@ -29,6 +30,7 @@ function pending() {
             self.find(hash, function(result) {
                 if (result == false) {
                     self.pendArray.push(formatted);
+                    self.emit('status', formatted);
                     //self.debug();
                 } else {
                     self.replace(hash, hash, conf);
@@ -37,6 +39,7 @@ function pending() {
         }
         else {
             self.pendArray.push(formatted);
+            self.emit('status', formatted);
             //self.debug();
         }
     }
@@ -46,6 +49,7 @@ function pending() {
     }
 
     this.remove = function(hash) {
+        console.log('Removing!');
         self.find(hash, function(result){
             if(result){
                 self.removeIndex(self.pendArray.indexOf(result));

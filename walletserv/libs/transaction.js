@@ -81,7 +81,8 @@ function transaction(tracker, currency, hash, stored) {
 		if (self.amount < 25) {
 			//if it has 1 confirm, proccess it
 			if (self.confirmations >= 1) {
-                tracker.remove(self.txid);
+                //tracker.remove(self.txid);
+                tracker.add(self.txid, self.confirmations, self.address);
 				callback();
 			} else {
 				console.log('Received payment to ' + self.address);
@@ -101,13 +102,15 @@ function transaction(tracker, currency, hash, stored) {
 				if (stored) {
 					unstore(self.txid, self.currency, function() {
 						callback();
-						tracker.remove(self.txid);
+						tracker.add(self.txid, self.confirmations, self.address);
+						//tracker.remove(self.txid);
 					});
 				}
 				//if not stored, we proccess but without deleting (because there is nothing to delete anyways)
 				else {
 					callback();
-					tracker.remove(self.txid);
+					tracker.add(self.txid, self.confirmations, self.address);
+					//tracker.remove(self.txid);
 				}
 			}
 		}
