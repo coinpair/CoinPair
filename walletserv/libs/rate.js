@@ -1,63 +1,53 @@
 //Exchange rates!
 var BTCE = require('btce'),
-	config = require('./../config.js');
+	config = require('./../config.js'),
+	request = require('request');
 
 var btce = new BTCE(config.btce.key, config.btce.secret);
 
-
-function rate(from, to, callback) {
-	usdPrice(from, function(err, firstRate) {
-		if (err) {
-			callback(err);
-		} else {
-			usdPrice(to, function(err, secondRate) {
-				if (err) {
-					callback(err);
-				} else {
-					callback(false, firstRate / secondRate);
-				}
-			});
-		}
-	});
-
-}
-var cooldownArray = [];
+var priceArray = [];
 var proccessDestroy = false;
 
-function fetch(from, to, callback) {
-	for (var i = 0; i < cooldownArray.length; i++) {
-		var element = cooldownArray[i];
-		if (from == element.from && to == element.to) {
-			callback(false, element.rate);
-			console.log('archived!');
-			return;
-		}
+function rate() {
+	this.rate = function(from, to, callback) {
+		fetch(from, to, function(err, rate) {
+			callback(err, rate);
+		});
 	}
-	usdPrice(from, function(err, firstRate) {
-		if (err) {
-			callback(err);
-		} else {
-			usdPrice(to, function(err, secondRate) {
+
+	var self = this;
+
+
+
+	this.refresh = function() {
+		priceArray = [];
+		for (var i = 0; i < config.allow.from.length; i++) {
+			var cur = config.allow.from[i];
+			usdPrice(cur, function(err, rate, currency) {
 				if (err) {
-					callback(err);
+					console.log('Pricing err! ' + err);
 				} else {
-					callback(false, firstRate / secondRate);
-					cooldownArray.push({
-						from: from,
-						to: to,
-						rate: firstRate / secondRate
+					priceArray.push({
+						type: currency,
+						price: rate
 					});
-					if(proccessDestroy == false){
-						proccessDestroy = true;
-						setTimeout(function(){
-							cooldownArray = [];
-							proccessDestroy = false;
-						}, 1000 * config.ratePeriod)
-					}
 				}
 			});
 		}
-	});
+	}
+	this.refresh();
+	setInterval(self.refresh, config.ratePeriod * 1000);
+}
+
+
+function fetch(from, to, callback) {
+	var newFrom, newTo;
+	for (var i = 0; i < priceArray.length; i++) {
+		if (priceArray[i].type == from) newFrom = priceArray[i].price;
+		if (priceArray[i].type == to) newTo = priceArray[i].price;
+	}
+	callback(false, newFrom / newTo);
+
 }
 
 function usdPrice(currency, callback) {
@@ -66,7 +56,7 @@ function usdPrice(currency, callback) {
 	}, function(err, data) {
 
 		if (err) callback(err)
-		else callback(false, data.ticker.avg);
+		else callback(false, data.ticker.avg, currency);
 	})
 }
 module.exports = rate;

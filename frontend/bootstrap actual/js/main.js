@@ -76,7 +76,7 @@ function decimalPlaces(num) {
 
 function calculateRate(pair, callback) {
 	$.ajax({
-		url: "http://198.27.79.97/rate/" + pair + "/",
+		url: "http://127.0.0.1:5111/rate/" + pair + "/",
 		dataType: "jsonp",
 		async: false,
 		type: 'get',

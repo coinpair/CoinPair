@@ -12,8 +12,8 @@ var walletnotify = require('./libs/walletnotify.js'),
 
 
 //setting up our services
+rate = new rate();
 pending = new pending();
-
 database = new database();
 api = new api(config.ports.api, pending);
 walletnotify = new walletnotify(config.ports.wnotify, pending);
@@ -73,7 +73,7 @@ api.on('track', function(id, res) {
 });
 
 api.on('rate', function(from, to, res) {
-	rate(from, to, function(err, rate) {
+	rate.rate(from, to, function(err, rate) {
 		if (err) {
 			res.send(500, 'SERVER ERR');
 		} else {
@@ -144,7 +144,7 @@ function received(txn) {
 				currency = row.fromcurrency;
 				otherCurrency = row.tocurrency;
 			}
-			rate(otherCurrency, currency, function(err, conversionRate) {
+			rate.rate(otherCurrency, currency, function(err, conversionRate) {
 				if (err) {
 					console.log('Exchange error: ' + err);
 				} else {
