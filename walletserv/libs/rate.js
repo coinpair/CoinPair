@@ -1,7 +1,6 @@
 //Exchange rates!
 var BTCE = require('btce'),
-	config = require('./../config.js'),
-	request = require('request');
+	config = require('./../config.js');
 
 var btce = new BTCE(config.btce.key, config.btce.secret);
 

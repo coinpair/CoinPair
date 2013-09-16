@@ -10,8 +10,7 @@
     "bitcoin-address": "latest",
     "btce": "latest",
     "async": "latest",
-    "socket.io": "latest",
-    "request": "latest"
+    "socket.io": "latest"
   },
   "engines": {
     "node": "0.10.x",
