@@ -10,14 +10,14 @@ var pg = require('pg'),
 //"Output", this is the address forwarding sender, this sends to whatever address the user specifies
 //"Receiver", the intended goal from the player, this is the person the user wants to send to
 
-//from database setup file: id serial, sender varchar(35), input varchar(35), output varchar(35), receiver varchar(35), fromcurrency varchar(3), tocurrency varchar(3)
+//from database setup file: id serial, sender varchar(35), input varchar(35), receiver varchar(35), fromcurrency varchar(3), tocurrency varchar(3)
 
 function database() {
 
 	var self = this;
 
 	function connect(callback) {
-		pg.connect(config.database.string,function(err, client, done) {
+		pg.connect(config.database.string, function(err, client, done) {
 			if (err) {
 				done(client);
 				callback(err);
@@ -35,20 +35,20 @@ function database() {
 				console.log('Test error: ' + err);
 
 			} else {
-				client.query('select * from addresslist;', function(err, rows){
+				client.query('select * from addresslist;', function(err, rows) {
 					console.log(rows);
 				});
 			}
 		});
 	}
 
-	this.create = function(input, output, receiver, from, to, callback) {
+	this.create = function(input, receiver, from, to, secureid, callback) {
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
 
 			} else {
-				client.query("insert into addresslist (input, output, receiver, fromcurrency, tocurrency) values ($1, $2, $3, $4, $5);", [input, output, receiver, from, to], function(err) {
+				client.query("insert into addresslist (input, receiver, fromcurrency, tocurrency, secureid) values ($1, $2, $3, $4, $5);", [input, receiver, from, to, secureid], function(err) {
 					callback(err);
 					done();
 				});
@@ -88,6 +88,46 @@ function database() {
 						}
 
 					}
+					done();
+				});
+			}
+		});
+	}
+
+	this.txnbase = {};
+
+	this.txnbase.create = function(secureid, sentto, amount, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('Create error: ' + err);
+
+			} else {
+				client.query("insert into txnbase (secureid, address, amount) values ($1, $2, $3);", [secureid, sentto, amount], function(err) {
+					callback(err);
+					done();
+				});
+			}
+		});
+	}
+	this.txnbase.find = function(secureid, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('Create error: ' + err);
+
+			} else {
+				var query = client.query("select * from txnbase where secureid=$1", [secureid], function(err) {
+					if (err) {
+						callback(err);
+					}
+				});
+				var total = 0;
+				var ret = [];
+				query.on('row', function(row){
+					ret.push(row);
+					total++;
+				});
+				query.on('end', function(){
+					callback(false, ret, total);
 					done();
 				});
 			}

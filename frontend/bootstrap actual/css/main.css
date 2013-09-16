@@ -1,0 +1,40 @@
+
+:invalid {
+  border-color:red;
+  border-width:1px;
+  border-style:solid;
+}
+
+.large-inline {
+	font-size:30px;
+	margin-left:10px;
+	margin-right:10px;
+	position:relative;
+	top:5px;
+}
+.address-bar {
+	width:512px;
+	display:inline-block;
+	margin-top:10px;
+}
+.navbar {
+	margin-bottom:0px;
+	background-color:white;
+}
+
+.conversion-div {
+	padding-bottom:100px;
+}
+.logo {
+	width:20%;
+	margin:5px;
+}
+.jumbotron {
+	background-image: url(../img/bg2.jpg);
+	background-repeat: no-repeat;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+	color:white;
+}

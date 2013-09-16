@@ -46,4 +46,8 @@ config.database.string = "postgres://postgres:dev@localhost/postgres";
 
 //fee!
 config.fee = 0.01;
+
+//rate!
+config.ratePeriod = 60;
+
 module.exports = config;

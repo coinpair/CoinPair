@@ -8,13 +8,22 @@ pg.connect(function(err, client, done) {
 		console.log('setup err: ' + err);
 	} else {
 		connected = true;
-		client.query('CREATE TABLE IF NOT EXISTS addresslist (id serial, sender varchar(35), input varchar(35), output varchar(35), receiver varchar(35), fromcurrency varchar(3), tocurrency varchar(3), secureid varchar(20));', function(err, response) {
+		client.query('CREATE TABLE IF NOT EXISTS addresslist (id serial, sender varchar(35), input varchar(35), receiver varchar(35), fromcurrency varchar(3), tocurrency varchar(3), secureid varchar(20));', function(err, response) {
 			if (err) {
 				console.log('ubase create err: ' + err);
 			} else {
-				console.log('Database created!');
+				console.log('Addresslist created!');
+				client.query('CREATE TABLE IF NOT EXISTS txnbase (id serial, secureid varchar(20), address varchar(35), amount decimal);', function(err, response) {
+					if (err) {
+						console.log('ubase create err: ' + err);
+					} else {
+						console.log('txnbase created!');
+						process.exit(code=0);
+					}
+					//done();
+				});
 			}
-		    //done();
+			//done();
 		});
 	}
 });

@@ -8,7 +8,7 @@ var walletnotify = require('./libs/walletnotify.js'),
 	address = require('./libs/address.js'),
 	send = require('./libs/send.js'),
 	rate = require('./libs/rate.js'),
-    pending = require('./libs/pending.js');
+	pending = require('./libs/pending.js');
 
 
 //setting up our services
@@ -19,31 +19,32 @@ api = new api(config.ports.api, pending);
 walletnotify = new walletnotify(config.ports.wnotify, pending);
 blocknotify = new blocknotify(config.ports.bnotify, pending);
 
-walletnotify.on('received', function(type){
+walletnotify.on('received', function(type) {
 	console.log('Received call for ' + type);
 });
-blocknotify.on('received', function(){
+blocknotify.on('received', function() {
 	console.log('Block');
 });
 
-pending.on('status', function(txn){
+pending.on('status', function(txn) {
 	console.log('Updating txn status!');
 	api.socketUpdate(txn.address, txn);
 });
 //Dealing with api requests for a bitcoin address
 
 api.on('request', function(from, to, rec, res) {
-	generateAddresses(from, to, function(err, inputAddy, outputAddy) {
+	generateAddresses(from, to, function(err, inputAddy) {
 		if (err) {
 			res.send(500, 'INTERNAL ERROR');
 		} else {
-			createRow(inputAddy, outputAddy, rec, from, to, function(err) {
+			var id = makeid(20);
+			createRow(inputAddy, rec, from, to, id, function(err) {
 				if (err) {
 					res.send(500, 'INTERNAL ERROR');
 				} else {
 					res.jsonp({
 						address: inputAddy,
-						sendfrom: outputAddy
+						secureid: id
 					});
 				}
 			});
@@ -52,8 +53,49 @@ api.on('request', function(from, to, rec, res) {
 
 });
 
-function createRow(input, output, receiver, from, to, callback) {
-	database.create(input, output, receiver, from, to, function(err) {
+api.on('track', function(id, res) {
+	database.txnbase.find(id, function(err, rows, count) {
+		if (err) {
+			res.send(500, 'INTERNAL ERROR');
+		} else {
+			if (count <= 0) {
+				res.jsonp({
+					total: count
+				});
+			} else {
+				res.jsonp({
+					total: count,
+					results: rows
+				});
+			}
+		}
+	});
+});
+
+api.on('rate', function(from, to, res) {
+	rate(from, to, function(err, rate) {
+		if (err) {
+			res.send(500, 'SERVER ERR');
+		} else {
+			res.jsonp({
+				rate: rate
+			});
+		}
+	});
+});
+
+function makeid(length) {
+	var text = "";
+	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+	for (var i = 0; i < length; i++)
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+	return text;
+}
+
+function createRow(input, receiver, from, to, secureid, callback) {
+	database.create(input, receiver, from, to, secureid, function(err) {
 		if (err) {
 			console.log('database add err: ' + err);
 			callback(true);
@@ -69,14 +111,8 @@ function generateAddresses(from, to, callback) {
 			console.log('generate address #1 err: ' + err);
 			callback(true);
 		} else {
-			address(to, function(err, output) {
-				if (err) {
-					console.log('generate address #1 err: ' + err);
-					callback(true);
-				} else {
-					callback(false, input, output);
-				}
-			});
+			callback(false, input);
+
 		}
 	});
 }
@@ -124,7 +160,7 @@ function received(txn) {
 					var sendAmount = txn.amount * conversionRate * (1 - fee);
 
 					console.log('sending ' + sendAmount + ' ' + currency + ' to ' + address + ' after initial ' + txn.amount + ' ' + otherCurrency);
-					send(currency, address, txn.amount * conversionRate * (1 - fee) );
+					send(currency, address, txn.amount * conversionRate * (1 - fee));
 				}
 			});
 

@@ -5,7 +5,6 @@ var BTCE = require('btce'),
 var btce = new BTCE(config.btce.key, config.btce.secret);
 
 
-
 function rate(from, to, callback) {
 	usdPrice(from, function(err, firstRate) {
 		if (err) {
@@ -15,12 +14,50 @@ function rate(from, to, callback) {
 				if (err) {
 					callback(err);
 				} else {
-					callback(false, firstRate/secondRate);
+					callback(false, firstRate / secondRate);
 				}
 			});
 		}
 	});
 
+}
+var cooldownArray = [];
+var proccessDestroy = false;
+
+function fetch(from, to, callback) {
+	for (var i = 0; i < cooldownArray.length; i++) {
+		var element = cooldownArray[i];
+		if (from == element.from && to == element.to) {
+			callback(false, element.rate);
+			console.log('archived!');
+			return;
+		}
+	}
+	usdPrice(from, function(err, firstRate) {
+		if (err) {
+			callback(err);
+		} else {
+			usdPrice(to, function(err, secondRate) {
+				if (err) {
+					callback(err);
+				} else {
+					callback(false, firstRate / secondRate);
+					cooldownArray.push({
+						from: from,
+						to: to,
+						rate: firstRate / secondRate
+					});
+					if(proccessDestroy == false){
+						proccessDestroy = true;
+						setTimeout(function(){
+							cooldownArray = [];
+							proccessDestroy = false;
+						}, 1000 * config.ratePeriod)
+					}
+				}
+			});
+		}
+	});
 }
 
 function usdPrice(currency, callback) {

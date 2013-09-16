@@ -13,7 +13,7 @@ var allowedTo = config.allow.to;
 function api(port, pending) {
 	var self = this;
 
-	self.socketUpdate = function(room, data){
+	self.socketUpdate = function(room, data) {
 		console.log('Sending data to room ' + room);
 		io.sockets. in (room).emit('update', data);
 	};
@@ -39,7 +39,29 @@ function api(port, pending) {
 			res.send(404, 'NOT FOUND');
 		}
 	});
-
+	app.get('/track/:id', function(req, res) {
+		var id = req.params.id;
+		if (!isset(id) || (id.length < 20 && id.length > 20)) {
+			res.send(404, 'IMPROPER ADDRESS');
+		} else {
+			self.emit('track', id, res);
+		}
+	});
+	app.get('/rate/:pair/', function(req, res) {
+		var pair = req.params.pair.toLowerCase();
+		if (isset(pair) && pair.length == 7 && pair.indexOf('-') != -1){
+			var seperated = pair.split('-');
+			if(config.allow.from.indexOf(seperated[0]) != -1 && config.allow.to.indexOf(seperated[1]) != -1){
+				self.emit('rate', seperated[0], seperated[1], res);
+			}
+			else{
+				res.send(404, 'NOT SUPPORTED');
+			}
+		}
+		else {
+			res.send(404, 'IMPROPER PAIR');
+		}
+	});
 	io.sockets.on('connection', function(socket) {
 		socket.on('subscribe', function(room) {
 			console.log('joining room', room);
@@ -57,11 +79,6 @@ function api(port, pending) {
 			console.log('sending message');
 			io.sockets. in (data.room).emit('message', data);
 		});
-	});
-
-	app.get('/debug/', function(req, res) {
-		res.send('Debuginn!');
-
 	});
 
 	app.get('/list/:address', function(req, res) {
