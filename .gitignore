@@ -4,3 +4,4 @@ notify.exe
 node_modules
 unconfirmed
 failed-txn.txt
+config.js
