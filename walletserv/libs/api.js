@@ -19,9 +19,13 @@ function api(port, pending) {
 	};
 
 	app.get('/:from-:to/:rec', function(req, res) {
+		req.params.to = req.params.to.toLowerCase();
+		req.params.from = req.params.from.toLowerCase();
+
 		if (allowedFrom.indexOf(req.params.from) != -1) {
 
 			if (allowedTo.indexOf(req.params.to) != -1) {
+
 				if (isset(req.params.rec)) {
 					if (addy.validate(req.params.rec, config.wallet.type)) {
 						self.emit('request', req.params.from, req.params.to, req.params.rec, res);
@@ -49,16 +53,14 @@ function api(port, pending) {
 	});
 	app.get('/rate/:pair/', function(req, res) {
 		var pair = req.params.pair.toLowerCase();
-		if (isset(pair) && pair.length == 7 && pair.indexOf('-') != -1){
+		if (isset(pair) && pair.length == 7 && pair.indexOf('-') != -1) {
 			var seperated = pair.split('-');
-			if(config.allow.from.indexOf(seperated[0]) != -1 && config.allow.to.indexOf(seperated[1]) != -1){
+			if (config.allow.from.indexOf(seperated[0]) != -1 && config.allow.to.indexOf(seperated[1]) != -1) {
 				self.emit('rate', seperated[0], seperated[1], res);
-			}
-			else{
+			} else {
 				res.send(404, 'NOT SUPPORTED');
 			}
-		}
-		else {
+		} else {
 			res.send(404, 'IMPROPER PAIR');
 		}
 	});

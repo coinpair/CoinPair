@@ -73,7 +73,7 @@
           <span class="address-bar">
             <div class="input-group">
               <span class="input-group-addon">Receiving Address</span>
-              <input type="text" class="form-control" placeholder="e.g. 1BTCorgHwCg6u2YSAWKgS17qUad6kHmtQW">
+              <input type="text" class="form-control receiveAddress" placeholder="e.g. 1BTCorgHwCg6u2YSAWKgS17qUad6kHmtQW">
             </div>
           </span>
           <br/>
@@ -86,8 +86,10 @@
           <br/>
 
           <span class="btn-group">
-            <button type="button" class="btn btn-lg btn-danger">Place</button>
+            <button type="button" class="btn btn-lg btn-danger place-order">Place</button>
+
           </span>
+          <div id="spinner"></div>
 
           <br/>
 
@@ -137,6 +139,20 @@
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/spin.js"></script>
     <script src="js/main.js"></script>
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-44081924-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
   </body>
 </html>

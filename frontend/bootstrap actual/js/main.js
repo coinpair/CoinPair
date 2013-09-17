@@ -4,7 +4,8 @@ $(".dropdown-menu li a").click(function() {
 });
 var from = false,
 	to = false,
-	toReceive = 0;
+	toReceive = 0,
+	rAddress = false;
 
 $(".toReceive").change(function() {
 	if (isNumber($(".toReceive").val())) {
@@ -21,6 +22,10 @@ $(".toReceive").change(function() {
 function isNumber(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
 }
+$(".receiveAddress").change(function() {
+	rAddress = $(".receiveAddress").val();
+});
+
 $(".fromcur li a").click(function() {
 	from = $(this).text();
 	clicked();
@@ -29,6 +34,20 @@ $(".fromcur li a").click(function() {
 $(".tocur li a").click(function() {
 	to = $(this).text();
 	clicked();
+});
+
+$(".place-order").click(function() {
+	if(from.length > 0 & to.length > 0 & rAddress.length > 0){
+		place();
+	}
+	else {
+		if(!rAddress || rAddress.length == 0){
+			alert('Please specify a receiving address!' + rAddress.length);
+		}
+		else if (!from || !to){
+			alert('Please set your from and to currencies!');
+		}
+	}
 });
 
 function clicked() {
@@ -51,7 +70,7 @@ function update(from, to, amount) {
 				amount = 1;
 			}
 			var firstAmount = amount / rate;
-			if(decimalPlaces(firstAmount) > 5){
+			if (decimalPlaces(firstAmount) > 5) {
 				firstAmount = parseFloat((firstAmount).toFixed(5));
 			}
 			$(element).html(firstAmount + ' ' + from + ' = ' + amount + ' ' + to);
@@ -59,6 +78,31 @@ function update(from, to, amount) {
 		}
 	});
 
+}
+
+function place() {
+	if(from && to){
+		spinner();
+		request(from, to, rAddress, toReceive, function(err, data){
+			if(err){
+				alert('Couldnt contact server!');
+			}
+			else {
+				window.location.replace("http://coinpair.com/?id=" + data.address);
+			}
+		});
+		
+	}
+}
+
+function spinner() {
+	$('.place-order').hide();
+	new Spinner({
+		color: '#000',
+		lines: 10,
+		top: 'auto',
+		left: 'auto'
+	}).spin(document.getElementById("spinner"));
 }
 
 function decimalPlaces(num) {
@@ -87,4 +131,28 @@ function calculateRate(pair, callback) {
 			callback(true);
 		}
 	});
+}
+
+function request(fromC, toC, address, amount, callback) {
+	$.ajax({
+		url: "http://127.0.0.1:5111/" + fromC +"-"+ toC + "/" + address,
+		dataType: "jsonp",
+		async: false,
+		type: 'get',
+		success: function(data) {
+			callback(false, data);
+		},
+		error: function() {
+			callback(true);
+		}
+	});
+}
+
+function subscribe(address) {
+	var socket = io.connect('http://localhost:5111');
+
+	socket.emit('subscribe', address);
+
+	return socket;
+
 }
