@@ -46,7 +46,7 @@
 }
 
 .upopulated {
-	display:hidden;
+	display:none;
 }
 .qr-place img {
 	width:100%;

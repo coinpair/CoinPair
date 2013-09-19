@@ -44,7 +44,7 @@ function page(data) {
 	$('.to-place').append(data.to);
 	$('.qr-place').append('<img alt="qr code" src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=' + data.address + '"/>');
 	$('.conversion-place').append(data.from + ' to ' + data.to);
-	$('.unpopulated').fadeIn();
+	$('.upopulated').show();
 }
 
 function spinner() {
@@ -77,7 +77,7 @@ function hideSpinner() {
 
 function lookup(id, callback) {
 	$.ajax({
-		url: "http:// 192.95.39.146/lookup/" + id + "/",
+		url: "http://192.95.39.146/lookup/" + id + "/",
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
