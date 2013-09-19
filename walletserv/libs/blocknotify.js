@@ -6,7 +6,7 @@ var net = require('net'),
 	util = require('util'),
 	fs = require('fs');
 
-function blockNotify(port, pending) {
+function blockNotify(port, pending, database) {
 
 	var self = this;
 
@@ -29,7 +29,7 @@ function blockNotify(port, pending) {
 				process(dir, function(name, currency) {
 					fs.readFile(dir + name, 'utf-8', function(err, text) {
 						if (!err) {
-							var txn = new transaction(pending, currencys, text, true);
+							var txn = new transaction(pending, database, currencys, text, true);
 
 							txn.on('payment', function(transact) {
 								self.emit('payment', transact);

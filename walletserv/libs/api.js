@@ -64,6 +64,17 @@ function api(port, pending) {
 			res.send(404, 'IMPROPER PAIR');
 		}
 	});
+	app.get('/lookup/:id/', function(req, res) {
+		var secureid = req.params.id;
+		if (secureid.length != 20) {
+			res.jsonp({
+				failed: "improper length"
+			});
+		} else {
+			self.emit('lookup', secureid, res);
+		}
+	});
+
 	io.sockets.on('connection', function(socket) {
 		socket.on('subscribe', function(room) {
 			console.log('joining room', room);

@@ -16,8 +16,13 @@ rate = new rate();
 pending = new pending();
 database = new database();
 api = new api(config.ports.api, pending);
-walletnotify = new walletnotify(config.ports.wnotify, pending);
-blocknotify = new blocknotify(config.ports.bnotify, pending);
+walletnotify = new walletnotify(config.ports.wnotify, pending, database);
+blocknotify = new blocknotify(config.ports.bnotify, pending, database);
+
+database.txnbase.findID('mxUxhCipWvNDGf5jwK1ZA3av7ey9gfNTop', function(err, id) {
+	console.log(id);
+	database.txnbase.create(id, 'FACKS', 13);
+});
 
 walletnotify.on('received', function(type) {
 	console.log('Received call for ' + type);
@@ -31,16 +36,42 @@ pending.on('status', function(txn) {
 	api.socketUpdate(txn.address, txn);
 });
 //Dealing with api requests for a bitcoin address
-
+api.on('lookup', function(secureid, res) {
+	database.txnbase.findAddress(secureid, function(err, result) {
+		if (err) {
+			res.jsonp({
+				failed: "internal error (server broken)"
+			});
+		} else if (!address) {
+			res.jsonp({
+				failed: "cannot find address"
+			});
+		} else {
+			pending.findAddy(result.input, function(pendingTxn) {
+				res.jsonp({
+					address: result.input,
+					receiver: result.receiver,
+					from: result.fromcurrency,
+					to: result.tocurrency,
+					pending: pendingTxn
+				});
+			});
+		}
+	});
+});
 api.on('request', function(from, to, rec, res) {
 	generateAddresses(from, to, function(err, inputAddy) {
 		if (err) {
-			res.send(500, 'INTERNAL ERROR');
+			res.jsonp({
+				failed: "internal error (server broken)"
+			});
 		} else {
 			var id = makeid(20);
 			createRow(inputAddy, rec, from, to, id, function(err) {
 				if (err) {
-					res.send(500, 'INTERNAL ERROR');
+					res.jsonp({
+						failed: "internal error (server broken)"
+					});
 				} else {
 					res.jsonp({
 						address: inputAddy,
@@ -56,7 +87,9 @@ api.on('request', function(from, to, rec, res) {
 api.on('track', function(id, res) {
 	database.txnbase.find(id, function(err, rows, count) {
 		if (err) {
-			res.send(500, 'INTERNAL ERROR');
+			res.jsonp({
+				failed: "internal error (server broken)"
+			});
 		} else {
 			if (count <= 0) {
 				res.jsonp({
@@ -75,7 +108,9 @@ api.on('track', function(id, res) {
 api.on('rate', function(from, to, res) {
 	rate.rate(from, to, function(err, rate) {
 		if (err) {
-			res.send(500, 'SERVER ERR');
+			res.jsonp({
+				failed: "internal error (server broken)"
+			});
 		} else {
 			res.jsonp({
 				rate: rate

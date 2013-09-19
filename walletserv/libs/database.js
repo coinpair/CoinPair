@@ -96,16 +96,58 @@ function database() {
 
 	this.txnbase = {};
 
-	this.txnbase.create = function(secureid, sentto, amount, callback) {
+	this.txnbase.create = function(secureid, sentto, amount) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('Create error: ' + err);
+				done();
+			} else {
+				client.query("insert into txnbase (secureid, address, amount) values ($1, $2, $3);", [secureid, sentto, amount], function(err) {
+					if(err)console.log('txn insertion error!: ' + err);
+					done();
+				});
+			}
+		});
+	}
+	this.txnbase.findID = function(address, callback) {
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
 
 			} else {
-				client.query("insert into txnbase (secureid, address, amount) values ($1, $2, $3);", [secureid, sentto, amount], function(err) {
-					callback(err);
+				var query = client.query("select * from addresslist where input=$1;", [address], function(err, result){
+					var show;
+					if(result.rowCount == 0){
+						show = false;
+					}
+					else {
+						show = result.rows[0].secureid;
+					}
+					callback(err, show);
 					done();
 				});
+
+			}
+		});
+	}
+	this.txnbase.findAddress = function(secureid, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('Create error: ' + err);
+
+			} else {
+				var query = client.query("select * from addresslist where secureid=$1;", [secureid], function(err, result){
+					var show;
+					if(result.rowCount == 0){
+						show = false;
+					}
+					else {
+						show = result.rows[0];
+					}
+					callback(err, show);
+					done();
+				});
+
 			}
 		});
 	}
@@ -122,11 +164,11 @@ function database() {
 				});
 				var total = 0;
 				var ret = [];
-				query.on('row', function(row){
+				query.on('row', function(row) {
 					ret.push(row);
 					total++;
 				});
-				query.on('end', function(){
+				query.on('end', function() {
 					callback(false, ret, total);
 					done();
 				});

@@ -29,7 +29,7 @@
 	width:20%;
 	margin:5px;
 }
-.jumbotron {
+.jumbotron-frontpage {
 	background-image: url(../img/bg2.jpg);
 	background-repeat: no-repeat;
 	-webkit-background-size: cover;
@@ -43,4 +43,11 @@
   color: inherit; /* blue colors for links too */
   text-decoration: inherit; /* no underline */
 
+}
+
+.upopulated {
+	display:hidden;
+}
+.qr-place img {
+	width:100%;
 }

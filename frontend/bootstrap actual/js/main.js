@@ -88,7 +88,7 @@ function place() {
 				alert('Couldnt contact server!');
 			}
 			else {
-				window.location.replace("http://coinpair.com/?id=" + data.address);
+				window.location.replace("http://coinpair.com/track.html?id=" + data.secureid);
 			}
 		});
 		
@@ -120,7 +120,7 @@ function decimalPlaces(num) {
 
 function calculateRate(pair, callback) {
 	$.ajax({
-		url: "http://127.0.0.1:5111/rate/" + pair + "/",
+		url: "http://192.95.39.146/rate/" + pair + "/",
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
@@ -135,7 +135,7 @@ function calculateRate(pair, callback) {
 
 function request(fromC, toC, address, amount, callback) {
 	$.ajax({
-		url: "http://127.0.0.1:5111/" + fromC +"-"+ toC + "/" + address,
+		url: "http://192.95.39.146/" + fromC +"-"+ toC + "/" + address,
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
@@ -149,7 +149,7 @@ function request(fromC, toC, address, amount, callback) {
 }
 
 function subscribe(address) {
-	var socket = io.connect('http://localhost:5111');
+	var socket = io.connect('http:// 192.95.39.146');
 
 	socket.emit('subscribe', address);
 

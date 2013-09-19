@@ -21,7 +21,7 @@ var lclient = new bitcoin.Client({
 	pass: config.wallet.ltc.password
 });
 
-function transaction(tracker, currency, hash, stored) {
+function transaction(tracker, database, currency, hash, stored) {
 	var self = this;
 	this.confirmations = 0;
 	this.amount = 0;
@@ -36,8 +36,7 @@ function transaction(tracker, currency, hash, stored) {
 
 	if (currency == "btc") {
 		process(bclient, hash);
-	}
-	else if (currency == "btc") {
+	} else if (currency == "btc") {
 		process(lclient, hash);
 	}
 
@@ -81,8 +80,8 @@ function transaction(tracker, currency, hash, stored) {
 		if (self.amount < 25) {
 			//if it has 1 confirm, proccess it
 			if (self.confirmations >= 1) {
-                //tracker.remove(self.txid);
-                tracker.add(self.txid, self.confirmations, self.address);
+				//tracker.remove(self.txid);
+				tracker.add(self.txid, self.confirmations, self.address);
 				callback();
 			} else {
 				console.log('Received payment to ' + self.address);
@@ -119,6 +118,15 @@ function transaction(tracker, currency, hash, stored) {
 	this.complete = function() {
 		console.log('Processing payment ' + self.amount + ' ' + self.currency + ' to ' + self.address);
 		self.emit('payment', self);
+		database.txnbase.findID(self.address, function(err, secureid) {
+			if (err) {
+				console.log('Database adding error!: ' + err);
+			} else if (!results) {
+				console.log('Not found for address: ' + self.address);
+			} else {
+				database.txnbase.create(secureid, self.address, self.amount);
+			}
+		});
 	}
 
 }
