@@ -13,9 +13,9 @@ var allowedTo = config.allow.to;
 function api(port, pending) {
 	var self = this;
 
-	self.socketUpdate = function(room, data) {
+	self.socketUpdate = function(room, data, events) {
 		console.log('Sending data to room ' + room);
-		io.sockets. in (room).emit('update', data);
+		io.sockets. in (room).emit(events, data);
 	};
 
 	app.get('/:from-:to/:rec', function(req, res) {

@@ -19,11 +19,6 @@ api = new api(config.ports.api, pending);
 walletnotify = new walletnotify(config.ports.wnotify, pending, database);
 blocknotify = new blocknotify(config.ports.bnotify, pending, database);
 
-database.txnbase.findID('mxUxhCipWvNDGf5jwK1ZA3av7ey9gfNTop', function(err, id) {
-	console.log(id);
-	database.txnbase.create(id, 'FACKS', 13);
-});
-
 walletnotify.on('received', function(type) {
 	console.log('Received call for ' + type);
 });
@@ -33,8 +28,16 @@ blocknotify.on('received', function() {
 
 pending.on('status', function(txn) {
 	console.log('Updating txn status!');
-	api.socketUpdate(txn.address, txn);
+	api.socketUpdate(txn.address, txn, 'update');
 });
+pending.on('completion', function(hash, address, amount) {
+	api.socketUpdate(address, {
+		hash: hash,
+		address: address,
+		amount: amount
+	}, 'complete');
+});
+
 //Dealing with api requests for a bitcoin address
 api.on('lookup', function(secureid, res) {
 	database.txnbase.findAddress(secureid, function(err, result) {
@@ -106,17 +109,25 @@ api.on('track', function(id, res) {
 });
 
 api.on('rate', function(from, to, res) {
-	rate.rate(from, to, function(err, rate) {
-		if (err) {
-			res.jsonp({
-				failed: "internal error (server broken)"
-			});
-		} else {
-			res.jsonp({
-				rate: rate
-			});
-		}
-	});
+	if (from == to) {
+		res.jsonp({
+			rate: 1
+		});
+	} else {
+
+
+		rate.rate(from, to, function(err, rate) {
+			if (err) {
+				res.jsonp({
+					failed: "internal error (server broken)"
+				});
+			} else {
+				res.jsonp({
+					rate: rate
+				});
+			}
+		});
+	}
 });
 
 function makeid(length) {

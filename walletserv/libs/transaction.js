@@ -81,11 +81,11 @@ function transaction(tracker, database, currency, hash, stored) {
 			//if it has 1 confirm, proccess it
 			if (self.confirmations >= 1) {
 				//tracker.remove(self.txid);
-				tracker.add(self.txid, self.confirmations, self.address);
+				tracker.add(self.txid, self.confirmations, self.amount, self.address);
 				callback();
 			} else {
 				console.log('Received payment to ' + self.address);
-				tracker.add(self.txid, self.confirmations, self.address);
+				tracker.add(self.txid, self.confirmations, self.amount, self.address);
 			}
 		} else {
 			//transactions at this point are above 25 btc
@@ -96,19 +96,19 @@ function transaction(tracker, database, currency, hash, stored) {
 			}
 			//checking if the transaction has more than 6 confirms or if the transaction is less worth than the blocks needed to attack, if so, we proccess it
 			else if (self.confirmations >= 6 || (self.confirmations > 1 && self.amount < self.confirmations * 25)) {
-				tracker.add(self.txid, self.confirmations, self.address);
+				tracker.add(self.txid, self.confirmations, self.amount, self.address);
 				//checking if the transaction we are proccessing has already been queued, if so, we proccess the transact and delete it from queue
 				if (stored) {
 					unstore(self.txid, self.currency, function() {
 						callback();
-						tracker.add(self.txid, self.confirmations, self.address);
+						tracker.add(self.txid, self.confirmations, self.amount, self.address);
 						//tracker.remove(self.txid);
 					});
 				}
 				//if not stored, we proccess but without deleting (because there is nothing to delete anyways)
 				else {
 					callback();
-					tracker.add(self.txid, self.confirmations, self.address);
+					tracker.add(self.txid, self.confirmations, self.amount, self.address);
 					//tracker.remove(self.txid);
 				}
 			}
@@ -118,10 +118,11 @@ function transaction(tracker, database, currency, hash, stored) {
 	this.complete = function() {
 		console.log('Processing payment ' + self.amount + ' ' + self.currency + ' to ' + self.address);
 		self.emit('payment', self);
+		track.complete(self.hash,self.address,self.amount);
 		database.txnbase.findID(self.address, function(err, secureid) {
 			if (err) {
 				console.log('Database adding error!: ' + err);
-			} else if (!results) {
+			} else if (!secureid) {
 				console.log('Not found for address: ' + self.address);
 			} else {
 				database.txnbase.create(secureid, self.address, self.amount);

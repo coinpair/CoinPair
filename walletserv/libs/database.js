@@ -75,7 +75,7 @@ function database() {
 				callback(err);
 
 			} else {
-				client.query("select * from addresslist where input=$1 or output=$1;", [address], function(err, row) {
+				client.query("select * from addresslist where input=$1;", [address], function(err, row) {
 					if (err) {
 						callback(err);
 					} else {

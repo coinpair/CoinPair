@@ -13,7 +13,7 @@ function pending() {
     this.pendArray = []; //The great pend array of CoinPair, BEHOLD IT!
     this.pendArrayFiled = []; //The pending saved arrays, for all transactions in hold
 
-    this.add = function(hash, conf, address, check) {
+    this.add = function(hash, conf, amount, address, check) {
         console.log('Adding!');
         if (typeof check === 'undefined') {
             check = true;
@@ -23,6 +23,7 @@ function pending() {
         var formatted = {
             hash: hash,
             address: address,
+            amount: amount,
             confirmations: conf,
             index: self.pendArray.length
         }
@@ -48,6 +49,11 @@ function pending() {
         self.emit('status', changed);
     }
 
+    this.complete = function(hash,address,amount){
+        self.remove(hash);
+        self.emit('completion', hash, address, amount);
+    }
+
     this.remove = function(hash) {
         console.log('Removing!');
         self.find(hash, function(result){
@@ -63,12 +69,13 @@ function pending() {
 
     this.replace = function(original, hash, confirms) {
         self.find(original, function(item) {
-            self.removeIndex(item.index);
+            self.removeIndex(self.pendArray.indexOf());
             self.add(hash, confirms, false);
         });
     }
 
     this.find = function(hash, callback) {
+
         async.forEach(self.pendArray, function(item, next) {
             if (item.hash == hash) {
                 callback(item);
@@ -77,18 +84,24 @@ function pending() {
             }
         }, function(err) {
             callback(false);
+           
         });
     }
 
     this.findAddy = function(address, callback) {
+        var all = [];
+        var found = false;
         async.forEach(self.pendArray, function(item, next) {
             if (item.address == address) {
-                callback(item);
+                all.push(item);
+                found = true;
+                next();
             } else {
                 next();
             }
         }, function(err) {
-            callback(false);
+            if(!found)callback(false);
+            else callback(all);
         });
     }
 
