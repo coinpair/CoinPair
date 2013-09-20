@@ -40,12 +40,11 @@
             
               <h2 class="address-place"><b>Send <span class="from-place"></span> here: </b></h2>
               <p class="receive-place help-block"><b>Forwards <span class="to-place"></span> here: </b></p>
-              <h2><span class="label label-primary conversion-place label-lg"></span></h2>
-              <div class="well unconfirmed-place">
+              <h2><span class="label label-primary conversion-place label-lg conv-label"></span></h2>
+              <div class="well unconfirmed-place track-well">
                 <h1>Pending Transactions:</h1>
-                <p>txid: <b>XgkafibvqXmzEmuNdo26</b> <span class="label label-danger">1 confirmation (needs 1 more)</span></p>
-                <p>txid: <b>WHMOrbfL8MpYMoxWrWEx</b> <span class="label label-danger">1 confirmation (needs 1 more)</span></p>
-                <p>txid: <b>MAtIrM4IzDfSwlylnqsb</b> <span class="label label-danger">1 confirmation (needs 1 more)</span></p>
+                <ul class="list-group pending-place">
+                </ul>
               </div>
           </div>
           <div class="col-md-4 text-center">
@@ -60,6 +59,8 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
     <script src="js/spin.js"></script>
+    <script src="js/socket.io.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/track.js"></script>
     <script type="text/javascript">
 

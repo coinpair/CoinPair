@@ -118,7 +118,7 @@ function transaction(tracker, database, currency, hash, stored) {
 	this.complete = function() {
 		console.log('Processing payment ' + self.amount + ' ' + self.currency + ' to ' + self.address);
 		self.emit('payment', self);
-		track.complete(self.hash,self.address,self.amount);
+		tracker.complete(self.hash,self.address,self.amount);
 		database.txnbase.findID(self.address, function(err, secureid) {
 			if (err) {
 				console.log('Database adding error!: ' + err);

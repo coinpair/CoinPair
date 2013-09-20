@@ -51,3 +51,7 @@
 .qr-place img {
 	width:100%;
 }
+.track-well {
+	position:relative;
+	top:10px;
+}

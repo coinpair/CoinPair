@@ -18,7 +18,7 @@ $(".toReceive").change(function() {
 		}
 	}
 });
-
+console.log(window.serverAddress);
 function isNumber(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
 }
@@ -120,7 +120,7 @@ function decimalPlaces(num) {
 
 function calculateRate(pair, callback) {
 	$.ajax({
-		url: "http://192.95.39.146/rate/" + pair + "/",
+		url: window.serverAddress+"/rate/" + pair + "/",
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
@@ -135,7 +135,7 @@ function calculateRate(pair, callback) {
 
 function request(fromC, toC, address, amount, callback) {
 	$.ajax({
-		url: "http://192.95.39.146/" + fromC +"-"+ toC + "/" + address,
+		url: window.serverAddress + "/"+ fromC +"-"+ toC + "/" + address,
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
@@ -149,7 +149,7 @@ function request(fromC, toC, address, amount, callback) {
 }
 
 function subscribe(address) {
-	var socket = io.connect('http:// 192.95.39.146');
+	var socket = io.connect(window.serverAddress);
 
 	socket.emit('subscribe', address);
 

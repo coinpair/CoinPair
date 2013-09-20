@@ -26,8 +26,7 @@ $(document).ready(function() {
 				hideSpinner();
 				if (isset(data.failed)) {
 					$('body').append('<div class="row"><div class="well"><h1>We could not find any addresses</h1>The id in the url may be mistyped, it may not exist. The server gave this reason: ' + data.failed + '</div></div>');
-				}
-				else {
+				} else {
 					page(data);
 				}
 			}
@@ -35,16 +34,50 @@ $(document).ready(function() {
 	}
 
 });
-
+var receiveCurrency = false;
 function page(data) {
-	console.log(data);
 	$('.address-place').append(data.address);
 	$('.receive-place').append(data.receiver);
 	$('.from-place').append(data.from);
+	receiveCurrency = data.from;
 	$('.to-place').append(data.to);
 	$('.qr-place').append('<img alt="qr code" src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=' + data.address + '"/>');
 	$('.conversion-place').append(data.from + ' to ' + data.to);
 	$('.upopulated').show();
+	console.log(data.pending.length);
+	for (var i = 0; i < data.pending.length; i++) {
+		var element = data.pending[i];
+		console.log(data.pending);
+		setPending(element.hash, element.amount, element.confirmations);
+	}
+	var connection = subscribe(data.address);
+	connection.on('update', function(data) {
+		console.log(data);
+		setPending(data.hash, data.amount, data.confirmations);
+	});
+	connection.on('complete', function(data){
+		removePending(data.hash);
+		alert(data.hash + ' completed!');
+	});
+}
+
+function setPending(hash, amount, confirms) {
+	console.log('Called!');
+	$('.' + hash).remove();
+	$('.pending-place').append('<li class="list-group-item '+hash+'"><span class="badge">'+confirms+' confirms</span><span class="label label-primary">'+amount+' '+receiveCurrency+'</span> '+hash + '</li>');
+}
+
+function removePending(hash) {
+	$('.'+ hash).remove();
+}
+
+function subscribe(address) {
+	var socket = io.connect(window.serverAddress);
+
+	socket.emit('subscribe', address);
+
+	return socket;
+
 }
 
 function spinner() {
@@ -77,7 +110,7 @@ function hideSpinner() {
 
 function lookup(id, callback) {
 	$.ajax({
-		url: "http://192.95.39.146/lookup/" + id + "/",
+		url: window.serverAddress + "/lookup/" + id + "/",
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
