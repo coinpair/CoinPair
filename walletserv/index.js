@@ -50,14 +50,27 @@ api.on('lookup', function(secureid, res) {
 				failed: "cannot find address"
 			});
 		} else {
+
 			pending.findAddy(result.input, function(pendingTxn) {
-				res.jsonp({
-					address: result.input,
-					receiver: result.receiver,
-					from: result.fromcurrency,
-					to: result.tocurrency,
-					pending: pendingTxn
+				rate.rate(result.fromcurrency, result.tocurrency, function(err, rateVal) {
+					if (err) {
+						res.jsonp({
+							failed: "internal error (server broken)"
+						});
+					} else {
+						res.jsonp({
+							address: result.input,
+							receiver: result.receiver,
+							from: result.fromcurrency,
+							to: result.tocurrency,
+							rate: rateVal,
+							time: rate.time,
+							timeTo: rate.timeLeft(),
+							pending: pendingTxn
+						});
+					}
 				});
+
 			});
 		}
 	});
@@ -111,19 +124,23 @@ api.on('track', function(id, res) {
 api.on('rate', function(from, to, res) {
 	if (from == to) {
 		res.jsonp({
-			rate: 1
+			rate: 1,
+			time: rate.time,
+			timeTo: rate.timeLeft()
 		});
 	} else {
 
 
-		rate.rate(from, to, function(err, rate) {
+		rate.rate(from, to, function(err, rateVal) {
 			if (err) {
 				res.jsonp({
 					failed: "internal error (server broken)"
 				});
 			} else {
 				res.jsonp({
-					rate: rate
+					rate: rateVal,
+					time: rate.time,
+					timeTo: rate.timeLeft()
 				});
 			}
 		});

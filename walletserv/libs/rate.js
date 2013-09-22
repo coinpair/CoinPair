@@ -15,10 +15,11 @@ function rate() {
 	}
 
 	var self = this;
-
+	this.time;
 
 
 	this.refresh = function() {
+		self.time = new Date().getTime() + config.ratePeriod * 1000;
 		priceArray = [];
 		for (var i = 0; i < config.allow.from.length; i++) {
 			var cur = config.allow.from[i];
@@ -36,6 +37,10 @@ function rate() {
 	}
 	this.refresh();
 	setInterval(self.refresh, config.ratePeriod * 1000);
+
+	this.timeLeft = function() {
+		return (self.time - new Date())/1000;
+	}
 }
 
 
