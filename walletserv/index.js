@@ -40,7 +40,7 @@ pending.on('completion', function(hash, address, amount) {
 
 //Dealing with api requests for a bitcoin address
 api.on('lookup', function(secureid, res) {
-	database.txnbase.findAddress(secureid, function(err, result) {
+	database.address(secureid, function(err, result) {
 		if (err) {
 			res.jsonp({
 				failed: "internal error (server broken)"
@@ -53,22 +53,27 @@ api.on('lookup', function(secureid, res) {
 
 			pending.findAddy(result.input, function(pendingTxn) {
 				rate.rate(result.fromcurrency, result.tocurrency, function(err, rateVal) {
-					if (err) {
-						res.jsonp({
-							failed: "internal error (server broken)"
-						});
-					} else {
-						res.jsonp({
-							address: result.input,
-							receiver: result.receiver,
-							from: result.fromcurrency,
-							to: result.tocurrency,
-							rate: rateVal,
-							time: rate.time,
-							timeTo: rate.timeLeft(),
-							pending: pendingTxn
-						});
-					}
+					database.txnbase.find(secureid, function(err2, results) {
+						if (err || err2) {
+							res.jsonp({
+								failed: "internal error (server broken)"
+							});
+							console.log('rate err: ' + err);
+							console.log('txn find err: ' + err2);
+						} else {
+							res.jsonp({
+								address: result.input,
+								receiver: result.receiver,
+								from: result.fromcurrency,
+								to: result.tocurrency,
+								rate: rateVal,
+								time: rate.time,
+								timeTo: rate.timeLeft(),
+								pending: pendingTxn,
+								history: results
+							});
+						}
+					});
 				});
 
 			});

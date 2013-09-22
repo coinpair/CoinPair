@@ -42,10 +42,21 @@
               <h2 class="address-place"><b>Send <span class="from-place"></span> here: </b></h2>
               <p class="receive-place help-block"><b>Forwards <span class="to-place"></span> here: </b></p>
               <h2><span class="label label-primary conversion-place label-lg conv-label"></span></h2>
-              <div class="well unconfirmed-place track-well">
-                <h1>Pending Transactions:</h1>
-                <ul class="list-group pending-place">
-                </ul>
+              <div class="exchanger">
+                <h2>Send an exact <span class="to-place"></span> amount</h2>
+                <div class="input-group span1">
+                  <span class="input-group-addon">Amount To Receive</span>
+                  <input type="text" size="35" class="form-control to-receive calcfield" pattern="\d+\.?\d*" placeholder="1">
+                </div>
+                <div class="text-center exchrate"><b>Send <span class="rate-place"></span> <span class="from-place"></b></div>
+                <div class="progress progress-striped active">
+                  <div class="progress-bar timebar-place"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%">
+                    <span class="time-place"></span>
+                  </div>
+
+                </div>
+                <p class="help-block">Exchange rate updates at 0</p>
+
               </div>
           </div>
 
@@ -56,22 +67,12 @@
         </div>
 
         <div class="row">
-           <div class="col-md-4">
-            <h2>Send an exact <span class="to-place"></span> amount</h2>
-            <div class="input-group">
-              <span class="input-group-addon">Amount To Receive</span>
-              <input type="text" class="form-control to-receive" pattern="\d+\.?\d*" placeholder="1">
-            </div>
-            <div class="text-center exchrate"><b>Send <span class="rate-place"></span> <span class="from-place"></b></div>
-            <div class="progress progress-striped active">
-              <div class="progress-bar timebar-place"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%">
-                <span class="time-place"></span>
+          <div class="well unconfirmed-place track-well">
+                <h1>Pending Transactions:</h1>
+                <ul class="list-group pending-place">
+                </ul>
               </div>
-
-            </div>
-            <p class="help-block">Exchange rate updates at 0</p>
-
-          </div>
+           
         </div>
 
       </div>

@@ -94,6 +94,28 @@ function database() {
 		});
 	}
 
+	this.address = function(secureid, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('Create error: ' + err);
+
+			} else {
+				var query = client.query("select * from addresslist where secureid=$1;", [secureid], function(err, result){
+					var show;
+					if(result.rowCount == 0){
+						show = false;
+					}
+					else {
+						show = result.rows[0];
+					}
+					callback(err, show);
+					done();
+				});
+
+			}
+		});
+	}
+
 	this.txnbase = {};
 
 	this.txnbase.create = function(secureid, sentto, amount) {
@@ -130,27 +152,7 @@ function database() {
 			}
 		});
 	}
-	this.txnbase.findAddress = function(secureid, callback) {
-		connect(function(err, done, client) {
-			if (err) {
-				callback('Create error: ' + err);
-
-			} else {
-				var query = client.query("select * from addresslist where secureid=$1;", [secureid], function(err, result){
-					var show;
-					if(result.rowCount == 0){
-						show = false;
-					}
-					else {
-						show = result.rows[0];
-					}
-					callback(err, show);
-					done();
-				});
-
-			}
-		});
-	}
+	
 	this.txnbase.find = function(secureid, callback) {
 		connect(function(err, done, client) {
 			if (err) {
