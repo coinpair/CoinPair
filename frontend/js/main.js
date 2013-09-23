@@ -26,14 +26,12 @@ $(".tocur li a").click(function() {
 });
 
 $(".place-order").click(function() {
-	if(from.length > 0 & to.length > 0 & rAddress.length > 0){
+	if (from.length > 0 & to.length > 0 & rAddress.length > 0) {
 		place();
-	}
-	else {
-		if(!rAddress || rAddress.length == 0){
+	} else {
+		if (!rAddress || rAddress.length == 0) {
 			alert('Please specify a receiving address!' + rAddress.length);
-		}
-		else if (!from || !to){
+		} else if (!from || !to) {
 			alert('Please set your from and to currencies!');
 		}
 	}
@@ -70,17 +68,16 @@ function update(from, to, amount) {
 }
 
 function place() {
-	if(from && to){
+	if (from && to) {
 		spinner();
-		request(from, to, rAddress, toReceive, function(err, data){
-			if(err){
+		request(from, to, rAddress, toReceive, function(err, data) {
+			if (err) {
 				alert('Couldnt contact server!');
-			}
-			else {
+			} else {
 				window.location.replace("http://coinpair.com/track.html?id=" + data.secureid);
 			}
 		});
-		
+
 	}
 }
 
@@ -109,30 +106,39 @@ function decimalPlaces(num) {
 
 function calculateRate(pair, callback) {
 	$.ajax({
-		url: window.serverAddress+"/rate/" + pair + "/",
+		url: window.serverAddress + "/rate/" + pair + "/",
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
 		success: function(data) {
-			callback(false, data.rate);
+			if (isset(data.error)) {
+				callback(data.error);
+			} else {
+				callback(false, data.rate);
+			}
 		},
 		error: function() {
-			callback(true);
+			callback("clientside error");
 		}
 	});
 }
 
 function request(fromC, toC, address, amount, callback) {
 	$.ajax({
-		url: window.serverAddress + "/"+ fromC +"-"+ toC + "/" + address,
+		url: window.serverAddress + "/" + fromC + "-" + toC + "/" + address,
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
 		success: function(data) {
-			callback(false, data);
+			if (isset(data.error)) {
+				callback(data.error);
+			} else {
+
+				callback(false, data);
+			}
 		},
 		error: function() {
-			callback(true);
+			callback("clientside error");
 		}
 	});
 }
@@ -144,4 +150,33 @@ function subscribe(address) {
 
 	return socket;
 
+}
+
+function isset() {
+	// http://kevin.vanzonneveld.net
+	// +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+	// +   improved by: FremyCompany
+	// +   improved by: Onno Marsman
+	// +   improved by: Rafał Kukawski
+	// *     example 1: isset( undefined, true);
+	// *     returns 1: false
+	// *     example 2: isset( 'Kevin van Zonneveld' );
+	// *     returns 2: true
+
+	var a = arguments,
+		l = a.length,
+		i = 0,
+		undef;
+
+	if (l === 0) {
+		throw new Error('Empty isset');
+	}
+
+	while (i !== l) {
+		if (a[i] === undef || a[i] === null) {
+			return false;
+		}
+		i++;
+	}
+	return true;
 }

@@ -151,5 +151,8 @@ function isset() {
 	}
 	return true;
 }
+function sendErr(res, message){
+    res.jsonp({error: message});
+}
 
 module.exports = api;

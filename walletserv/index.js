@@ -42,22 +42,17 @@ pending.on('completion', function(hash, address, amount) {
 api.on('lookup', function(secureid, res) {
 	database.address(secureid, function(err, result) {
 		if (err) {
-			res.jsonp({
-				failed: "internal error (server broken)"
-			});
+			sendErr(res, 'internal error (server fault)');
+			console.log('DB lookup err: ' + err);
 		} else if (!address) {
-			res.jsonp({
-				failed: "cannot find address"
-			});
+			sendErr(res, 'couldnt fine address')
 		} else {
 
 			pending.findAddy(result.input, function(pendingTxn) {
 				rate.rate(result.fromcurrency, result.tocurrency, function(err, rateVal) {
 					database.txnbase.find(secureid, function(err2, results) {
 						if (err || err2) {
-							res.jsonp({
-								failed: "internal error (server broken)"
-							});
+							sendErr(res, 'internal error (server fault)');
 							console.log('rate err: ' + err);
 							console.log('txn find err: ' + err2);
 						} else {
@@ -83,16 +78,14 @@ api.on('lookup', function(secureid, res) {
 api.on('request', function(from, to, rec, res) {
 	generateAddresses(from, to, function(err, inputAddy) {
 		if (err) {
-			res.jsonp({
-				failed: "internal error (server broken)"
-			});
+			sendErr(res, 'internal error (server fault)');
+			console.log('Generate address err: ' + err);
 		} else {
 			var id = makeid(20);
 			createRow(inputAddy, rec, from, to, id, function(err) {
 				if (err) {
-					res.jsonp({
-						failed: "internal error (server broken)"
-					});
+					sendErr(res, 'internal error (server fault)');
+					console.log('Create entry in db err: ' + err);
 				} else {
 					res.jsonp({
 						address: inputAddy,
@@ -108,9 +101,8 @@ api.on('request', function(from, to, rec, res) {
 api.on('track', function(id, res) {
 	database.txnbase.find(id, function(err, rows, count) {
 		if (err) {
-			res.jsonp({
-				failed: "internal error (server broken)"
-			});
+			sendErr(res, 'internal error (server fault)');
+			console.log('txnbase find id err: ' + err);
 		} else {
 			if (count <= 0) {
 				res.jsonp({
@@ -138,9 +130,8 @@ api.on('rate', function(from, to, res) {
 
 		rate.rate(from, to, function(err, rateVal) {
 			if (err) {
-				res.jsonp({
-					failed: "internal error (server broken)"
-				});
+				sendErr(res, 'internal error (server fault)');
+				console.log('fetch rate err: ' + err);
 			} else {
 				res.jsonp({
 					rate: rateVal,
@@ -234,4 +225,10 @@ function received(txn) {
 
 		}
 	});
+}
+
+function sendErr(res, message) {
+	res.jsonp({
+		error: message
+	})
 }

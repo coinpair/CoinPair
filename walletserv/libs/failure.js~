@@ -1,4 +1,4 @@
-h//The fail module!
+//The fail module!
 
 var fs = require('fs');
 
