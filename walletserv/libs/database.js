@@ -118,13 +118,13 @@ function database() {
 
 	this.txnbase = {};
 
-	this.txnbase.create = function(secureid, sentto, amount) {
+	this.txnbase.create = function(secureid, hash, amount, date) {
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
 				done();
 			} else {
-				client.query("insert into txnbase (secureid, address, amount) values ($1, $2, $3);", [secureid, sentto, amount], function(err) {
+				client.query("insert into txnbase (secureid, hash, amount, date) values ($1, $2, $3, $4);", [secureid, hash, amount, date], function(err) {
 					if(err)console.log('txn insertion error!: ' + err);
 					done();
 				});

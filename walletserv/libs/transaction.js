@@ -80,8 +80,8 @@ function transaction(tracker, database, currency, hash, stored) {
 		if (self.amount < 25) {
 			//if it has 1 confirm, proccess it
 			if (self.confirmations >= 1) {
-				//tracker.remove(self.txid);
-				tracker.add(self.txid, self.confirmations, self.amount, self.address);
+				tracker.remove(self.txid);
+				//tracker.add(self.txid, self.confirmations, self.amount, self.address);
 				callback();
 			} else {
 				console.log('Received payment to ' + self.address);
@@ -101,15 +101,15 @@ function transaction(tracker, database, currency, hash, stored) {
 				if (stored) {
 					unstore(self.txid, self.currency, function() {
 						callback();
-						tracker.add(self.txid, self.confirmations, self.amount, self.address);
-						//tracker.remove(self.txid);
+						//tracker.add(self.txid, self.confirmations, self.amount, self.address);
+						tracker.remove(self.txid);
 					});
 				}
 				//if not stored, we proccess but without deleting (because there is nothing to delete anyways)
 				else {
 					callback();
-					tracker.add(self.txid, self.confirmations, self.amount, self.address);
-					//tracker.remove(self.txid);
+					//tracker.add(self.txid, self.confirmations, self.amount, self.address);
+					tracker.remove(self.txid);
 				}
 			}
 		}
@@ -118,14 +118,14 @@ function transaction(tracker, database, currency, hash, stored) {
 	this.complete = function() {
 		console.log('Processing payment ' + self.amount + ' ' + self.currency + ' to ' + self.address);
 		self.emit('payment', self);
-		tracker.complete(self.hash,self.address,self.amount);
+		tracker.complete(self.txid,self.address,self.amount);
 		database.txnbase.findID(self.address, function(err, secureid) {
 			if (err) {
 				console.log('Database adding error!: ' + err);
 			} else if (!secureid) {
 				console.log('Not found for address: ' + self.address);
 			} else {
-				database.txnbase.create(secureid, self.address, self.amount);
+				database.txnbase.create(secureid, self.txid, self.amount, new Date().toString('yyyy-MM-dd'));
 			}
 		});
 	}

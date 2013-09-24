@@ -7,6 +7,8 @@ var app = require('express')(),
 	server = require('http').createServer(app),
 	io = require('socket.io').listen(server);;
 
+io.set('log level', 1);
+
 var allowedFrom = config.allow.from;
 var allowedTo = config.allow.to;
 

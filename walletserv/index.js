@@ -33,7 +33,6 @@ pending.on('status', function(txn) {
 pending.on('completion', function(hash, address, amount) {
 	api.socketUpdate(address, {
 		hash: hash,
-		address: address,
 		amount: amount
 	}, 'complete');
 });

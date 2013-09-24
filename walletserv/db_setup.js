@@ -13,7 +13,7 @@ pg.connect(function(err, client, done) {
 				console.log('ubase create err: ' + err);
 			} else {
 				console.log('Addresslist created!');
-				client.query('CREATE TABLE IF NOT EXISTS txnbase (id serial, secureid varchar(20), address varchar(35), amount decimal);', function(err, response) {
+				client.query('CREATE TABLE IF NOT EXISTS txnbase (id serial, secureid varchar(20), hash varchar(65), amount decimal, date varchar(65));', function(err, response) {
 					if (err) {
 						console.log('ubase create err: ' + err);
 					} else {
