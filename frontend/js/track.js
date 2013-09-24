@@ -61,31 +61,38 @@ function page(data) {
 	startClock(time - 1);
 	$('.address-place').append(data.address);
 	$('.receive-place').append(data.receiver);
-	$('.from-place').append(data.from);
+	$('.from-place').append(data.from.toUpperCase());
 	exRate = data.rate;
 	$('.rate-place').html(exRate);
 	receiveCurrency = data.from;
 	currencyPair = data.from + '-' + data.to;
 
-	$('.to-place').append(data.to);
+	$('.to-place').append(data.to.toUpperCase());
 	$('.qr-place').append('<img alt="qr code" src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=' + data.address + '"/>');
 	$('.conversion-place').append(data.from + ' to ' + data.to);
 	$('.upopulated').show();
 
 	for (var i = 0; i < data.pending.length; i++) {
 		var element = data.pending[i];
-		console.log(data.pending);
 		setPending(element.hash, element.amount, element.confirmations);
 	}
+	for (var i = 0; i < data.history.length; i++) {
+		var element = data.history[i];
+		addToTable(element.hash, element.amount, element.date);
+	}
+
 	var connection = subscribe(data.address);
 	connection.on('update', function(data) {
-		console.log(data);
 		setPending(data.hash, data.amount, data.confirmations);
 	});
 	connection.on('complete', function(data) {
 		removePending(data.hash);
-		alert(data.hash + ' completed!');
+		addToTable(data.hash, data.amount, new Date().toString('yyyy-MM-dd'));
 	});
+}
+
+function addToTable(txid, amount, date){
+	$('.history-place').append('<tr><td>'+date+'</td><td>'+txid+'</td><td>'+amount+'</td></tr>');
 }
 
 function startClock(seconds) {
@@ -135,7 +142,6 @@ function calculateRate(pair, callback) {
 }
 
 function setPending(hash, amount, confirms) {
-	console.log('Called!');
 	$('.' + hash).remove();
 	$('.pending-place').append('<li class="list-group-item ' + hash + '"><span class="badge">' + confirms + ' confirms</span><span class="label label-primary">' + amount + ' ' + receiveCurrency + '</span> ' + hash + '</li>');
 }
@@ -182,7 +188,6 @@ function hideSpinner() {
 }
 
 function lookup(id, callback) {
-	console.log('Lookin!');
 	$.ajax({
 		url: window.serverAddress + "/lookup/" + id + "/",
 		dataType: "jsonp",

@@ -30,6 +30,7 @@
 	margin:5px;
 }
 .jumbotron-frontpage {
+	
 	background-image: url(../img/bg2.jpg);
 	background-repeat: no-repeat;
 	-webkit-background-size: cover;
@@ -37,6 +38,22 @@
 	-o-background-size: cover;
 	background-size: cover;
 	color:white;
+	/*
+	color:white;
+	background-image: linear-gradient(bottom, rgb(184,6,6) 45%, rgb(247,5,5) 100%);
+	background-image: -o-linear-gradient(bottom, rgb(184,6,6) 45%, rgb(247,5,5) 100%);
+	background-image: -moz-linear-gradient(bottom, rgb(184,6,6) 45%, rgb(247,5,5) 100%);
+	background-image: -webkit-linear-gradient(bottom, rgb(184,6,6) 45%, rgb(247,5,5) 100%);
+	background-image: -ms-linear-gradient(bottom, rgb(184,6,6) 45%, rgb(247,5,5) 100%);
+
+	background-image: -webkit-gradient(
+		linear,
+		left bottom,
+		left top,
+		color-stop(0.45, rgb(184,6,6)),
+		color-stop(1, rgb(247,5,5))
+	);
+*/
 }
 .place-order a{
 

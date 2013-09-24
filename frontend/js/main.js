@@ -74,7 +74,7 @@ function place() {
 			if (err) {
 				alert('Couldnt contact server!');
 			} else {
-				window.location.replace("http://coinpair.com/track.html?id=" + data.secureid);
+				window.location.replace("http://coinpair.com/beta/track.html?id=" + data.secureid);
 			}
 		});
 
