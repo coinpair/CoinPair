@@ -23,7 +23,6 @@
 }
 
 .conversion-div {
-	padding-bottom:100px;
 }
 .logo {
 	width:20%;
@@ -77,4 +76,8 @@
 }
 .to-receive {
 	width: 30% !important;
+}
+.less-space {
+	margin-top:0px;
+	padding-top:0px;
 }
