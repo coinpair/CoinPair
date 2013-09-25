@@ -29,7 +29,7 @@ function api(port, pending) {
 			if (allowedTo.indexOf(req.params.to) != -1) {
 
 				if (isset(req.params.rec)) {
-					if (req.params.rec.length <= 30) {
+					if (req.params.rec.length >= 30) {
 						self.emit('request', req.params.from, req.params.to, req.params.rec, res);
 					} else {
 					

@@ -84,15 +84,18 @@ function place() {
 
 	}
 }
-function showError(element, message){
-	$(element).prepend('<div class="alert alert-danger tempremove"><b>Error:</b> '+messager+'</div>');
-	setTimeout(function(){
+
+function showError(element, message) {
+	console.log('Showing!');
+	$(element).prepend('<div class="alert alert-danger tempremove"><b>Error:</b> ' + messager + '</div>');
+	setTimeout(function() {
 		$(element + ' .tempremove').slideUp();
-		setTimeout(function(){
+		setTimeout(function() {
 			$(element + ' .tempremove').remove();
 		}, 500);
 	}, 2000);
 }
+
 function spinner() {
 	$('.place-order').hide();
 	new Spinner({
@@ -115,6 +118,9 @@ function decimalPlaces(num) {
 		// Adjust for scientific notation.
 		- (match[2] ? +match[2] : 0));
 }
+$(document).ajaxError(function() {
+	alert("An error occurred!");
+});
 
 function calculateRate(pair, callback) {
 	$.ajax({
@@ -122,6 +128,7 @@ function calculateRate(pair, callback) {
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
+		timeout: 2000,
 		success: function(data) {
 			if (isset(data.error)) {
 				callback(data.error);
@@ -129,7 +136,7 @@ function calculateRate(pair, callback) {
 				callback(false, data.rate);
 			}
 		},
-		error: function() {
+		fail: function() {
 			callback("clientside error");
 		}
 	});
@@ -141,6 +148,7 @@ function request(fromC, toC, address, amount, callback) {
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
+		timeout: 2000,
 		success: function(data) {
 			if (isset(data.error)) {
 				callback(data.error);
