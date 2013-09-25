@@ -21,10 +21,11 @@ function rate() {
 
 	this.refresh = function() {
 		self.time = new Date().getTime() + config.ratePeriod * 1000;
-		priceArray = [];
+		
 		for (var i = 0; i < config.allow.from.length; i++) {
 			var cur = config.allow.from[i];
 			usdPrice(cur, function(err, rate, currency) {
+				console.log(currency);
 				if (err) {
 					console.log('Pricing err! ' + err);
 				} else {
@@ -58,10 +59,11 @@ function fetch(from, to, callback) {
 function usdPrice(currency, callback) {
 	var pair = currency + '_' + 'usd'
 	jsonGet('http://btc-e.com/api/2/' + pair + '/ticker', function(err, json) {
+		console.log(json);
 		if (err) {
 			callback(err);
 		} else {
-
+			console.log(json.ticker.avg + ' for ' + currency);
 			callback(false, json.ticker.avg, currency);
 		}
 	});
@@ -87,4 +89,7 @@ function jsonGet(url, callback) {
 	});
 }
 
+function isNumber(n) {
+	return !isNaN(parseFloat(n)) && isFinite(n);
+}
 module.exports = rate;
