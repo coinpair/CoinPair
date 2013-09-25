@@ -29,26 +29,28 @@ function api(port, pending) {
 			if (allowedTo.indexOf(req.params.to) != -1) {
 
 				if (isset(req.params.rec)) {
-					if (addy.validate(req.params.rec, config.wallet.type)) {
+					if (req.params.rec.length <= 30) {
 						self.emit('request', req.params.from, req.params.to, req.params.rec, res);
 					} else {
-						res.send(400, 'INVALID ADDRESS');
+					
+						sendErr(res, 'invalid address')
 					}
 				} else {
-					res.send(400, 'MISSING RECEIVING ADDRESS')
+					
+					sendErr(res, 'missing receiving address');
 				}
 			} else {
-				res.send(404, 'NOT FOUND');
+				sendErr(res, 'unsupported to-currency');
 			}
 
 		} else {
-			res.send(404, 'NOT FOUND');
+			sendErr(res, 'unsupported from-currency');
 		}
 	});
 	app.get('/track/:id', function(req, res) {
 		var id = req.params.id;
 		if (!isset(id) || (id.length < 20 && id.length > 20)) {
-			res.send(404, 'IMPROPER ADDRESS');
+			sendErr(res, 'improper id');
 		} else {
 			self.emit('track', id, res);
 		}
@@ -60,10 +62,10 @@ function api(port, pending) {
 			if (config.allow.from.indexOf(seperated[0]) != -1 && config.allow.to.indexOf(seperated[1]) != -1) {
 				self.emit('rate', seperated[0], seperated[1], res);
 			} else {
-				res.send(404, 'NOT SUPPORTED');
+				sendErr(res, 'not supported pair');
 			}
 		} else {
-			res.send(404, 'IMPROPER PAIR');
+			sendErr(res, 'improper pair');
 		}
 	});
 	app.get('/lookup/:id/', function(req, res) {
@@ -125,6 +127,12 @@ function api(port, pending) {
 
 util.inherits(api, events);
 
+function sendErr(res, message) {
+	res.send({
+		error: message
+	});
+}
+
 function isset() {
 	// http://kevin.vanzonneveld.net
 	// +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
@@ -153,8 +161,11 @@ function isset() {
 	}
 	return true;
 }
-function sendErr(res, message){
-    res.jsonp({error: message});
+
+function sendErr(res, message) {
+	res.jsonp({
+		error: message
+	});
 }
 
 module.exports = api;

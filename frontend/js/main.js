@@ -72,15 +72,27 @@ function place() {
 		spinner();
 		request(from, to, rAddress, toReceive, function(err, data) {
 			if (err) {
-				alert('Couldnt contact server!');
+				showError('.conversion-div', 'couldnt contact server');
 			} else {
-				window.location.replace("http://coinpair.com/beta/track.html?id=" + data.secureid);
+				if (isset(data.error)) {
+					showError('.conversion-div', data.error);
+				} else {
+					window.location.replace("http://coinpair.com/beta/track.html?id=" + data.secureid);
+				}
 			}
 		});
 
 	}
 }
-
+function showError(element, message){
+	$(element).prepend('<div class="alert alert-danger tempremove"><b>Error:</b> '+messager+'</div>');
+	setTimeout(function(){
+		$(element + ' .tempremove').slideUp();
+		setTimeout(function(){
+			$(element + ' .tempremove').remove();
+		}, 500);
+	}, 2000);
+}
 function spinner() {
 	$('.place-order').hide();
 	new Spinner({
