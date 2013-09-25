@@ -1,6 +1,7 @@
 //Exchange rates!
 var BTCE = require('btce'),
-	config = require('./../config.js');
+	config = require('./../config.js'),
+	request = require('request');
 
 var btce = new BTCE(config.btce.key, config.btce.secret);
 
@@ -39,7 +40,7 @@ function rate() {
 	setInterval(self.refresh, config.ratePeriod * 1000);
 
 	this.timeLeft = function() {
-		return (self.time - new Date())/1000;
+		return (self.time - new Date()) / 1000;
 	}
 }
 
@@ -55,12 +56,35 @@ function fetch(from, to, callback) {
 }
 
 function usdPrice(currency, callback) {
-	btce.ticker({
-		pair: currency + '_' + 'usd'
-	}, function(err, data) {
+	var pair = currency + '_' + 'usd'
+	jsonGet('http://btc-e.com/api/2/' + pair + '/ticker', function(err, json) {
+		if (err) {
+			callback(err);
+		} else {
 
-		if (err) callback(err)
-		else callback(false, data.ticker.avg, currency);
-	})
+			callback(false, json.ticker.avg, currency);
+		}
+	});
 }
+
+function jsonGet(url, callback) {
+
+	request(url, function(error, response, body) {
+		if (!error && response.statusCode == 200) {
+			var foo;
+
+			try {
+				foo = JSON.parse(body);
+			} catch (e) {
+				// An error has occured, handle it, by e.g. logging it
+				callback(e);
+				return;
+			}
+			callback(false, foo);
+		} else {
+			callback(error);
+		}
+	});
+}
+
 module.exports = rate;

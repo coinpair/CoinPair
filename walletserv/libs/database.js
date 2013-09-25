@@ -100,12 +100,11 @@ function database() {
 				callback('Create error: ' + err);
 
 			} else {
-				var query = client.query("select * from addresslist where secureid=$1;", [secureid], function(err, result){
+				var query = client.query("select * from addresslist where secureid=$1;", [secureid], function(err, result) {
 					var show;
-					if(result.rowCount == 0){
+					if (result.rowCount == 0) {
 						show = false;
-					}
-					else {
+					} else {
 						show = result.rows[0];
 					}
 					callback(err, show);
@@ -125,7 +124,7 @@ function database() {
 				done();
 			} else {
 				client.query("insert into txnbase (secureid, hash, amount, date) values ($1, $2, $3, $4);", [secureid, hash, amount, date], function(err) {
-					if(err)console.log('txn insertion error!: ' + err);
+					if (err) console.log('txn insertion error!: ' + err);
 					done();
 				});
 			}
@@ -137,12 +136,11 @@ function database() {
 				callback('Create error: ' + err);
 
 			} else {
-				var query = client.query("select * from addresslist where input=$1;", [address], function(err, result){
+				var query = client.query("select * from addresslist where input=$1;", [address], function(err, result) {
 					var show;
-					if(result.rowCount == 0){
+					if (result.rowCount == 0) {
 						show = false;
-					}
-					else {
+					} else {
 						show = result.rows[0].secureid;
 					}
 					callback(err, show);
@@ -152,7 +150,7 @@ function database() {
 			}
 		});
 	}
-	
+
 	this.txnbase.find = function(secureid, callback) {
 		connect(function(err, done, client) {
 			if (err) {
@@ -173,6 +171,56 @@ function database() {
 				query.on('end', function() {
 					callback(false, ret, total);
 					done();
+				});
+			}
+		});
+	}
+	this.ratebase = {};
+	/*
+	this.ratebase.create = function(hash, rate, date, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('rate Create error: ' + err);
+				done();
+			} else {
+
+				client.query("insert into ratebase(hash, rate, date) values ($1, $2, $3)
+WHERE NOT EXISTS (
+    SELECT 1 FROM ratebase WHERE hash=$1
+);", [hash, rate, date], function(err) {
+					if (err) console.log('rate insertion error!: ' + err);
+					done();
+				});
+			}
+		});
+	} */
+	this.ratebase.remove = function(hash, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('rate remove error: ' + err);
+				done();
+			} else {
+				client.query("delete * from ratebase where hash=$1;", [hash], function(err) {
+					if (err) console.log('rate deletion error!: ' + err);
+					done();
+				});
+			}
+		});
+	}
+	this.ratebase.rate = function(hash, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('rate Create error: ' + err);
+				done();
+			} else {
+				client.query("select * from ratebase where hash=$1;", [hash], function(err, rows) {
+					if (err) {
+						callback(err);
+					} else if (rowCount >= 1) {
+						callback(false, rows.rows[0]);
+					} else {
+						callback(false, false);
+					}
 				});
 			}
 		});

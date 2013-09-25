@@ -34,6 +34,9 @@ function blockNotify(port, pending, database) {
 							txn.on('payment', function(transact) {
 								self.emit('payment', transact);
 							});
+							txn.on('fresh', function(transact){
+								self.emit('fresh', transact);
+							});
 						}
 					});
 					s

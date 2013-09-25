@@ -75,6 +75,12 @@ function transaction(tracker, database, currency, hash, stored) {
 	}
 	this.logic = function(callback) {
 
+		//notifying the process that we have received a 0 transact
+		tracker.find(self.txid, function(found){
+			if(!found){
+				self.emit('fresh', self);
+			}
+		});
 
 		//checking if transaction has 0 or 1 confirms while under 25 btc
 		if (self.amount < 25) {

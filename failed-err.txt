@@ -1,0 +1,1 @@
+type: btc hash: 12345lol port: 1235

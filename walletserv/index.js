@@ -19,6 +19,7 @@ api = new api(config.ports.api, pending);
 walletnotify = new walletnotify(config.ports.wnotify, pending, database);
 blocknotify = new blocknotify(config.ports.bnotify, pending, database);
 
+
 walletnotify.on('received', function(type) {
 	console.log('Received call for ' + type);
 });
@@ -176,6 +177,7 @@ function generateAddresses(from, to, callback) {
 }
 
 //handling the events for when a transaction becomes confirmed and needs to be processed
+//walletnotify.on('fresh')
 walletnotify.on('payment', function(txn) {
 	received(txn);
 });

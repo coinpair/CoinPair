@@ -18,7 +18,15 @@ pg.connect(function(err, client, done) {
 						console.log('ubase create err: ' + err);
 					} else {
 						console.log('txnbase created!');
-						process.exit(code=0);
+						client.query('CREATE TABLE IF NOT EXISTS ratebase (hash varchar(65), rate decimal, date varchar(65));', function(err, response) {
+							if (err) {
+								console.log('ubase create err: ' + err);
+							} else {
+								console.log('ratebase created!');
+								process.exit(code = 0);
+							}
+							//done();
+						});
 					}
 					//done();
 				});
