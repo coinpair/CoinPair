@@ -54,11 +54,8 @@ function fetch(from, to, callback) {
 		if (priceArray[i].type == from) newFrom = priceArray[i].price;
 		if (priceArray[i].type == to) newTo = priceArray[i].price;
 	}
-	if (!newFrom || !newTo) {
-		callback('Not found!');
-	} else {
-		callback(false, newFrom / newTo);
-	}
+
+	callback(false, newFrom / newTo);
 
 }
 

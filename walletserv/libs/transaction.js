@@ -76,16 +76,21 @@ function transaction(tracker, database, currency, hash, stored) {
 	this.logic = function(callback) {
 
 		//notifying the process that we have received a 0 transact
-		tracker.find(self.txid, function(found){
-			if(!found){
+		tracker.find(self.txid, function(found) {
+			if (!found) {
 				self.emit('fresh', self);
 			}
 		});
-
+		
+		if (self.confirmations == 0) {
+			tracker.remove(self.txid);
+			//tracker.add(self.txid, self.confirmations, self.amount, self.address);
+			callback();
+		}
 		//checking if transaction has 0 or 1 confirms while under 25 btc
-		if (self.amount < 25 || 1==1) {
+		else if (self.amount < 25 || 1 == 1) {
 			//if it has 1 confirm, proccess it
-			if (self.confirmations >= 1 || 1==1) {
+			if (self.confirmations >= 1 || 1 == 1) {
 				tracker.remove(self.txid);
 				//tracker.add(self.txid, self.confirmations, self.amount, self.address);
 				callback();
@@ -124,7 +129,7 @@ function transaction(tracker, database, currency, hash, stored) {
 	this.complete = function() {
 		console.log('Processing payment ' + self.amount + ' ' + self.currency + ' to ' + self.address);
 		self.emit('payment', self);
-		tracker.complete(self.txid,self.address,self.amount);
+		tracker.complete(self.txid, self.address, self.amount);
 		database.txnbase.findID(self.address, function(err, secureid) {
 			if (err) {
 				console.log('Database adding error!: ' + err);
