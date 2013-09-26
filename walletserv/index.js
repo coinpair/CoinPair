@@ -8,7 +8,8 @@ var walletnotify = require('./libs/walletnotify.js'),
 	address = require('./libs/address.js'),
 	send = require('./libs/send.js'),
 	rate = require('./libs/rate.js'),
-	pending = require('./libs/pending.js');
+	pending = require('./libs/pending.js'),
+	failure = require('./libs/failure.js');
 
 
 //setting up our services
@@ -18,7 +19,6 @@ database = new database();
 api = new api(config.ports.api, pending);
 walletnotify = new walletnotify(config.ports.wnotify, pending, database);
 blocknotify = new blocknotify(config.ports.bnotify, pending, database);
-
 
 walletnotify.on('received', function(type) {
 	console.log('Received call for ' + type);
@@ -50,25 +50,29 @@ api.on('lookup', function(secureid, res) {
 
 			pending.findAddy(result.input, function(pendingTxn) {
 				rate.rate(result.fromcurrency, result.tocurrency, function(err, rateVal) {
-					database.txnbase.find(secureid, function(err2, results) {
-						if (err || err2) {
-							sendErr(res, 'internal error (server fault)');
-							console.log('rate err: ' + err);
-							console.log('txn find err: ' + err2);
-						} else {
-							res.jsonp({
-								address: result.input,
-								receiver: result.receiver,
-								from: result.fromcurrency,
-								to: result.tocurrency,
-								rate: rateVal,
-								time: rate.time,
-								timeTo: rate.timeLeft(),
-								pending: pendingTxn,
-								history: results
-							});
-						}
-					});
+					if (err) {
+						sendErr(res, 'internal error (server fault)');
+					} else {
+						database.txnbase.find(secureid, function(err2, results) {
+							if (err || err2) {
+								sendErr(res, 'internal error (server fault)');
+								console.log('rate err: ' + err);
+								console.log('txn find err: ' + err2);
+							} else {
+								res.jsonp({
+									address: result.input,
+									receiver: result.receiver,
+									from: result.fromcurrency,
+									to: result.tocurrency,
+									rate: rateVal,
+									time: rate.time,
+									timeTo: rate.timeLeft(),
+									pending: pendingTxn,
+									history: results
+								});
+							}
+						});
+					}
 				});
 
 			});
@@ -190,6 +194,7 @@ function received(txn) {
 		if (err) {
 			console.log('COULDNT PROCESS ' + txn.txid);
 			console.log('DB ERROR: ' + err);
+			failure(txn.txid, 'couldnt reach db or some shit, err: ' + err);
 		} else {
 			var address, currency, otherCurrency;
 			if (row == false) {
@@ -207,6 +212,8 @@ function received(txn) {
 			rate.rate(otherCurrency, currency, function(err, conversionRate) {
 				if (err) {
 					console.log('Exchange error: ' + err);
+					console.log('Couldnt process ' + txn.txid);
+					failure(txn.txid, 'couldnt reach a rate, err: ' + err);
 				} else {
 					if (config.fee > 1) {
 						fee = 1;
@@ -220,7 +227,9 @@ function received(txn) {
 					var sendAmount = txn.amount * conversionRate * (1 - fee);
 
 					console.log('sending ' + sendAmount + ' ' + currency + ' to ' + address + ' after initial ' + txn.amount + ' ' + otherCurrency);
-					send(currency, address, txn.amount * conversionRate * (1 - fee));
+					send(currency, address, txn.amount * conversionRate * (1 - fee), function(err){
+						failure(txn.txid, 'send fail, err: ' + err);
+					});
 				}
 			});
 

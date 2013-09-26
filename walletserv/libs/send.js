@@ -17,19 +17,22 @@ var lclient = new bitcoin.Client({
 	pass: config.wallet.ltc.password
 });
 
-function send(currency, address, amount) {
+function send(currency, address, amount, callback) {
 	if (currency == "btc") {
-		standardSend(bclient, address, amount);
-	}
-	else if (currency == "ltc") {
-		standardSend(lclient, address, amount);
+		standardSend(bclient, address, amount, function(err) {
+			callback(err);
+		});
+	} else if (currency == "ltc") {
+		standardSend(lclient, address, amount, function(err) {
+			callback(err);
+		});
 	}
 }
 
-function standardSend(client, address, amount) {
+function standardSend(client, address, amount, callback) {
 	client.sendToAddress(address, amount, function(err) {
 		if (err) {
-			console.log('send fail: ' + err);
+			callback(err);
 		} else {
 			console.log('Sent ' + amount + ' to ' + address);
 		}

@@ -72,13 +72,13 @@ function place() {
 		spinner();
 		request(from, to, rAddress, toReceive, function(err, data) {
 			if (err) {
-				showError('.conversion-div', 'couldnt contact server');
+				showError('.conversion-div', err);
+				$('#spinner').hide();
+				$('.place-order').show();
 			} else {
-				if (isset(data.error)) {
-					showError('.conversion-div', data.error);
-				} else {
-					window.location.replace("http://coinpair.com/beta/track.html?id=" + data.secureid);
-				}
+
+				window.location.replace("http://coinpair.com/beta/track.html?id=" + data.secureid);
+
 			}
 		});
 
@@ -87,7 +87,7 @@ function place() {
 
 function showError(element, message) {
 	console.log('Showing!');
-	$(element).prepend('<div class="alert alert-danger tempremove"><b>Error:</b> ' + messager + '</div>');
+	$(element).prepend('<div class="alert alert-danger tempremove"><b>Error:</b> ' + message + '</div>');
 	setTimeout(function() {
 		$(element + ' .tempremove').slideUp();
 		setTimeout(function() {
@@ -98,6 +98,7 @@ function showError(element, message) {
 
 function spinner() {
 	$('.place-order').hide();
+	$('#spinner').show();
 	new Spinner({
 		color: '#000',
 		lines: 10,

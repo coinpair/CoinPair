@@ -43,7 +43,8 @@ $('.to-receive').keyup(function() {
 	if (isNumber($(".to-receive").val())) {
 		toReceive = Number($(".to-receive").val());
 		if ($(".to-receive").val().length > 0) {
-			$('.rate-place').html(toReceive * exRate);
+			var amount = Math.ceil(toReceive/exRate * 10000)/10000;
+			$('.rate-place').html(amount);
 		}
 	}
 });
@@ -54,7 +55,7 @@ function isNumber(n) {
 
 var receiveCurrency = false,
 	currencyPair,
-	exRate = 0;
+	exRate;
 
 function page(data) {
 	var time = data.timeTo;
@@ -63,13 +64,13 @@ function page(data) {
 	$('.receive-place').append(data.receiver);
 	$('.from-place').append(data.from.toUpperCase());
 	exRate = data.rate;
-	$('.rate-place').html(exRate);
+	$('.rate-place').html(Math.ceil(toReceive/exRate * 10000)/10000);
 	receiveCurrency = data.from;
 	currencyPair = data.from + '-' + data.to;
 
 	$('.to-place').append(data.to.toUpperCase());
 	$('.qr-place').append('<img alt="qr code" src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=' + data.address + '"/>');
-	$('.conversion-place').append(data.from + ' to ' + data.to);
+	$('.conversion-place').append(data.from.toUpperCase() + ' to ' + data.to.toUpperCase());
 	$('.upopulated').show();
 
 	for (var i = 0; i < data.pending.length; i++) {
@@ -103,7 +104,8 @@ function startClock(seconds) {
 		calculateRate(currencyPair, function(err, rate) {
 			if (!err) {
 				exRate = rate.rate; //wow, descriptive line
-				$('.rate-place').html(toReceive * exRate);
+
+				$('.rate-place').html(Math.ceil(toReceive/exRate * 10000)/10000);
 				startClock(rate.timeTo - 1);
 			}
 		});
@@ -134,6 +136,7 @@ function calculateRate(pair, callback) {
 		type: 'get',
 		success: function(data) {
 			callback(false, data);
+
 		},
 		error: function() {
 			callback(true);

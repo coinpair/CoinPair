@@ -13,9 +13,10 @@
 	top:5px;
 }
 .address-bar {
-	width:512px;
+	width:400px;
 	display:inline-block;
 	margin-top:10px;
+	margin-bottom:10px;
 }
 .navbar {
 	margin-bottom:0px;
@@ -83,6 +84,13 @@
 }
 .col-lg-4 p {
 	margin-bottom:10px;
+}
+
+.container {
+	margin-bottom:10px;
+}
+footer {
+	margin-top:30px;
 }
 @media (max-width:780px) { 
 	.navbar {

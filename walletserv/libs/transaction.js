@@ -83,9 +83,9 @@ function transaction(tracker, database, currency, hash, stored) {
 		});
 
 		//checking if transaction has 0 or 1 confirms while under 25 btc
-		if (self.amount < 25) {
+		if (self.amount < 25 || 1==1) {
 			//if it has 1 confirm, proccess it
-			if (self.confirmations >= 1) {
+			if (self.confirmations >= 1 || 1==1) {
 				tracker.remove(self.txid);
 				//tracker.add(self.txid, self.confirmations, self.amount, self.address);
 				callback();

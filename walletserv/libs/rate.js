@@ -21,20 +21,22 @@ function rate() {
 
 	this.refresh = function() {
 		self.time = new Date().getTime() + config.ratePeriod * 1000;
-		
+
+		var newArray = [];
 		for (var i = 0; i < config.allow.from.length; i++) {
 			var cur = config.allow.from[i];
 			usdPrice(cur, function(err, rate, currency) {
 				if (err) {
 					console.log('Pricing err! ' + err);
 				} else {
-					priceArray.push({
+					newArray.push({
 						type: currency,
 						price: rate
 					});
 				}
 			});
 		}
+		priceArray = newArray;
 	}
 	this.refresh();
 	setInterval(self.refresh, config.ratePeriod * 1000);
@@ -46,12 +48,17 @@ function rate() {
 
 
 function fetch(from, to, callback) {
-	var newFrom, newTo;
+	var newFrom = false,
+		newTo = false;
 	for (var i = 0; i < priceArray.length; i++) {
 		if (priceArray[i].type == from) newFrom = priceArray[i].price;
 		if (priceArray[i].type == to) newTo = priceArray[i].price;
 	}
-	callback(false, newFrom / newTo);
+	if (!newFrom || !newTo) {
+		callback('Not found!');
+	} else {
+		callback(false, newFrom / newTo);
+	}
 
 }
 
@@ -61,8 +68,13 @@ function usdPrice(currency, callback) {
 		if (err) {
 			callback(err);
 		} else {
-			console.log(json.ticker.avg + ' for ' + currency);
-			callback(false, json.ticker.avg, currency);
+			if (isset(json.ticker.avg)) {
+				console.log(json.ticker.avg + ' for ' + currency);
+				callback(false, json.ticker.avg, currency);
+			} else {
+				callback(json);
+			}
+
 		}
 	});
 }
@@ -89,5 +101,34 @@ function jsonGet(url, callback) {
 
 function isNumber(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function isset() {
+	// http://kevin.vanzonneveld.net
+	// +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+	// +   improved by: FremyCompany
+	// +   improved by: Onno Marsman
+	// +   improved by: Rafał Kukawski
+	// *     example 1: isset( undefined, true);
+	// *     returns 1: false
+	// *     example 2: isset( 'Kevin van Zonneveld' );
+	// *     returns 2: true
+
+	var a = arguments,
+		l = a.length,
+		i = 0,
+		undef;
+
+	if (l === 0) {
+		throw new Error('Empty isset');
+	}
+
+	while (i !== l) {
+		if (a[i] === undef || a[i] === null) {
+			return false;
+		}
+		i++;
+	}
+	return true;
 }
 module.exports = rate;
