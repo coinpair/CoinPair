@@ -1,7 +1,8 @@
 //Exchange rates!
 var BTCE = require('btce'),
 	config = require('./../config.js'),
-	request = require('request');
+	request = require('request'),
+	async = require('async');
 
 var btce = new BTCE(config.btce.key, config.btce.secret);
 
@@ -23,8 +24,9 @@ function rate() {
 		self.time = new Date().getTime() + config.ratePeriod * 1000;
 
 		var newArray = [];
-		for (var i = 0; i < config.allow.from.length; i++) {
-			var cur = config.allow.from[i];
+
+		async.forEach(config.allow.from, function(item, callback) {
+			var cur = item;
 			usdPrice(cur, function(err, rate, currency) {
 				if (err || !isset(rate)) {
 					console.log('Pricing err! ' + err);
@@ -34,9 +36,12 @@ function rate() {
 						price: rate
 					});
 				}
+				callback();
 			});
-		}
-		priceArray = newArray;
+		}, function(err) {
+			priceArray = newArray;
+		});
+		
 	}
 	this.refresh();
 	setInterval(self.refresh, config.ratePeriod * 1000);
