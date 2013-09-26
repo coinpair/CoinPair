@@ -48,7 +48,7 @@ function rate() {
 
 
 function fetch(from, to, callback) {
-	from = fromto.toLowerCase();
+	from = from.toLowerCase();
 	to = to.toLowerCase();
 	var newFrom = false,
 		newTo = false;
