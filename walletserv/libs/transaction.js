@@ -36,7 +36,7 @@ function transaction(tracker, database, currency, hash, stored) {
 
 	if (currency == "btc") {
 		process(bclient, hash);
-	} else if (currency == "btc") {
+	} else if (currency == "ltc") {
 		process(lclient, hash);
 	}
 
