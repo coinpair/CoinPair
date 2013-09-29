@@ -12,7 +12,12 @@ var proccessDestroy = false;
 function rate() {
 	this.rate = function(from, to, callback) {
 		fetch(from, to, function(err, rate) {
-			callback(err, rate);
+			if (!isNumber(rate) || rate == 0) {
+				callback('improper number received: ' + rate);
+			} else {
+				callback(err, rate);
+			}
+
 		});
 	}
 
@@ -41,7 +46,7 @@ function rate() {
 		}, function(err) {
 			priceArray = newArray;
 		});
-		
+
 	}
 	this.refresh();
 	setInterval(self.refresh, config.ratePeriod * 1000);
@@ -57,19 +62,16 @@ function fetch(from, to, callback) {
 	to = to.toLowerCase();
 	var newFrom = false,
 		newTo = false;
-	console.log(priceArray);
 	for (var i = 0; i < priceArray.length; i++) {
 		if (priceArray[i].type == from) {
 			newFrom = priceArray[i].price;
-			console.log('Setting price for ' + from)
 		}
 		if (priceArray[i].type == to) {
 			newTo = priceArray[i].price;
-			console.log('Setting price for ' + to);
 		}
 	}
 
-	callback(false, newFrom / newTo);
+	callback(false, parseFloat((newFrom / newTo).toFixed(5)));
 
 }
 

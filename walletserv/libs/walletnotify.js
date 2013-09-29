@@ -30,6 +30,10 @@ function walletNotify(port, pending, database) {
 					self.emit('payment', transact);
 				});
 
+				txn.on('fresh', function(transact, callback){
+					self.emit('fresh', transact,callback);
+				});
+
 			}
 		});
 

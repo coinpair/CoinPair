@@ -58,8 +58,9 @@ var receiveCurrency = false,
 	exRate;
 
 function page(data) {
-	var time = data.timeTo;
-	startClock(time - 1);
+	var time = new Date().getTime() / 1000 + data.timeTo;
+	startClock(time);
+
 	$('.address-place').append(data.address);
 	$('.receive-place').append(data.receiver);
 	$('.from-place').append(data.from.toUpperCase());
@@ -106,26 +107,25 @@ function startClock(seconds) {
 				exRate = rate.rate; //wow, descriptive line
 
 				$('.rate-place').html(Math.ceil(toReceive/exRate * 10000)/10000);
-				startClock(rate.timeTo - 1);
+
+				var time = new Date().getTime() / 1000 + rate.timeTo;
+				startClock(time);
 			}
 		});
 	});
 }
 
 function clock(seconds, effect, callback) {
-	if (seconds > 0) {
-		effect(seconds - 1);
+	var diff = Math.ceil(seconds - new Date().getTime() / 1000);
+	if(diff >= 0){
+		effect(diff);
 		setTimeout(function() {
-			var timeOut = 1;
-			if (seconds % 1 != 0) {
-				timeOut = seconds % 1;
-			}
-			clock(seconds - timeOut, effect, callback);
+			clock(diff, effect, callback);
 		}, 1000);
-	} else {
+	}
+	else {
 		callback();
 	}
-
 }
 
 function calculateRate(pair, callback) {

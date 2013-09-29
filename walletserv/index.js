@@ -23,6 +23,7 @@ blocknotify = new blocknotify(config.ports.bnotify, pending, database);
 walletnotify.on('received', function(type) {
 	console.log('Received call for ' + type);
 });
+
 blocknotify.on('received', function() {
 	console.log('Block');
 });
@@ -181,7 +182,23 @@ function generateAddresses(from, to, callback) {
 }
 
 //handling the events for when a transaction becomes confirmed and needs to be processed
-//walletnotify.on('fresh')
+walletnotify.on('fresh', function(txn, callback) {
+	rate.rate(txn.from, txn.to, function(err, conversionRate) {
+		if (err) {
+			console.log('rate error: ' + err);
+			console.log('Couldnt rate lock ' + txn.txid);
+			callback();
+		} else {
+			database.ratebase.create(txn.txid, conversionRate, function(err) {
+				if (err) {
+					console.log("Couldnt rate lock " + txn.txid + ", got error: " + err);
+				}
+				callback();
+			});
+		}
+	});
+});
+
 walletnotify.on('payment', function(txn) {
 	received(txn);
 });
@@ -209,12 +226,37 @@ function received(txn) {
 				currency = row.fromcurrency;
 				otherCurrency = row.tocurrency;
 			}
-			rate.rate(otherCurrency, currency, function(err, conversionRate) {
-				if (err) {
-					console.log('Exchange error: ' + err);
-					console.log('Couldnt process ' + txn.txid);
-					failure(txn.txid, 'couldnt reach a rate, err: ' + err);
+			database.ratebase.rate(txn.txid, function(err, found) {
+				if (err || !found) {
+					
+					rate.rate(otherCurrency, currency, function(err, conversionRate) {
+						if (err) {
+							console.log('Exchange error: ' + err);
+							console.log('Couldnt process ' + txn.txid);
+							failure(txn.txid, 'couldnt reach a rate, err: ' + err);
+						} else {
+							var fee;
+							if (config.fee > 1) {
+								fee = 1;
+								console.log('Watch out the fee takes 100% of transaction!');
+							} else if (config.fee > .25) {
+								fee = config.fee;
+								console.log('Fee takes more than 25% of transaction!');
+							} else {
+								fee = config.fee;
+							}
+							var sendAmount = txn.amount * conversionRate * (1 - fee);
+
+							console.log('sending ' + sendAmount + ' ' + currency + ' to ' + address + ' after initial ' + txn.amount + ' ' + otherCurrency);
+							send(currency, address, sendAmount, function(err) {
+								failure(txn.txid, 'send fail, err: ' + err);
+
+							});
+						}
+					});
 				} else {
+					console.log('preset pricin!');
+					var fee;
 					if (config.fee > 1) {
 						fee = 1;
 						console.log('Watch out the fee takes 100% of transaction!');
@@ -224,17 +266,21 @@ function received(txn) {
 					} else {
 						fee = config.fee;
 					}
-					var sendAmount = txn.amount * conversionRate * (1 - fee);
 
+					var sendAmount = txn.amount * found.rate * (1 - fee);
 					console.log('sending ' + sendAmount + ' ' + currency + ' to ' + address + ' after initial ' + txn.amount + ' ' + otherCurrency);
-					send(currency, address, txn.amount * conversionRate * (1 - fee), function(err){
+					send(currency, address, sendAmount, function(err) {
 						failure(txn.txid, 'send fail, err: ' + err);
 					});
+					database.ratebase.remove(txn.txid);
 				}
 			});
-
 		}
 	});
+}
+
+function isNumber(n) {
+	return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 function sendErr(res, message) {

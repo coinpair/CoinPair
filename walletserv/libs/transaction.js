@@ -29,6 +29,8 @@ function transaction(tracker, database, currency, hash, stored) {
 	this.address = '';
 	this.category = '';
 	this.currency = currency;
+	this.from = currency;
+	this.to;
 	this.raw;
 	if (typeof stored === undefined) {
 		stored = false;
@@ -64,7 +66,32 @@ function transaction(tracker, database, currency, hash, stored) {
 
 						if (self.category == 'receive') {
 
-							self.logic(self.complete);
+							//just checking if its a txn that we have already recorded
+							tracker.find(self.txid, function(found) {
+								if (!found) {
+									//if it is, we emit the callback for a new txn
+									database.find(self.address, function(err, result) {
+										if (!err && result) {
+											console.log(result);
+											self.to = result.tocurrency;
+											self.emit('fresh', self, function(){
+												self.logic(self.complete);//calling for completion/handling
+											});
+
+											
+										}
+										else if (err) {
+											console.log('database finding error: ' + err);
+										}
+										
+									});
+
+								}
+								else {
+									self.logic(self.complete);//calling for completion/handling
+								}
+							});
+							
 
 						}
 					}
@@ -75,13 +102,6 @@ function transaction(tracker, database, currency, hash, stored) {
 	}
 	this.logic = function(callback) {
 
-		//notifying the process that we have received a 0 transact
-		tracker.find(self.txid, function(found) {
-			if (!found) {
-				self.emit('fresh', self);
-			}
-		});
-		
 		if (self.confirmations == 0) {
 			tracker.remove(self.txid);
 			//tracker.add(self.txid, self.confirmations, self.amount, self.address);
@@ -130,13 +150,16 @@ function transaction(tracker, database, currency, hash, stored) {
 		console.log('Processing payment ' + self.amount + ' ' + self.currency + ' to ' + self.address);
 		self.emit('payment', self);
 		tracker.complete(self.txid, self.address, self.amount);
-		database.txnbase.findID(self.address, function(err, secureid) {
+
+
+
+		database.find(self.address, function(err, result) {
 			if (err) {
 				console.log('Database adding error!: ' + err);
-			} else if (!secureid) {
+			} else if (!result) {
 				console.log('Not found for address: ' + self.address);
 			} else {
-				database.txnbase.create(secureid, self.txid, self.amount, new Date().toString('yyyy-MM-dd'));
+				database.txnbase.create(result.secureid, self.txid, self.amount, new Date().toString('yyyy-MM-dd'));
 			}
 		});
 	}

@@ -18,7 +18,7 @@ pg.connect(function(err, client, done) {
 						console.log('ubase create err: ' + err);
 					} else {
 						console.log('txnbase created!');
-						client.query('CREATE TABLE IF NOT EXISTS ratebase (hash varchar(65), rate decimal, date varchar(65));', function(err, response) {
+						client.query('CREATE TABLE IF NOT EXISTS ratebase (hash varchar(65), rate decimal, date date);', function(err, response) {
 							if (err) {
 								console.log('ubase create err: ' + err);
 							} else {
