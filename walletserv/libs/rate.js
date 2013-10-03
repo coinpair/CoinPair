@@ -13,7 +13,7 @@ function rate() {
 	this.rate = function(from, to, callback) {
 		fetch(from, to, function(err, rate) {
 			if (!isNumber(rate) || rate == 0) {
-				callback('improper number received: ' + rate);
+				callback('improper number received (most likely rate module down/not functioning/rate source down): ' + rate);
 			} else {
 				callback(err, rate);
 			}
@@ -71,7 +71,7 @@ function fetch(from, to, callback) {
 		}
 	}
 
-	callback(false, parseFloat((newFrom / newTo).toFixed(5)));
+	callback(false, Math.ceil(newFrom / newTo * 100000000)/100000000);
 
 }
 

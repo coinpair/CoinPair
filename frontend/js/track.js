@@ -106,7 +106,7 @@ function startClock(seconds) {
 			if (!err) {
 				exRate = rate.rate; //wow, descriptive line
 
-				$('.rate-place').html(Math.ceil(toReceive/exRate * 10000)/10000);
+				$('.rate-place').html(Math.ceil(toReceive/exRate * 100000000)/100000000);
 
 				var time = new Date().getTime() / 1000 + rate.timeTo;
 				startClock(time);

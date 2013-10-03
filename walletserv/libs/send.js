@@ -30,12 +30,17 @@ function send(currency, address, amount, callback) {
 }
 
 function standardSend(client, address, amount, callback) {
-	client.sendToAddress(address, amount, function(err) {
-		if (err) {
-			callback(err);
-		} else {
-			console.log('Sent ' + amount + ' to ' + address);
-		}
-	});
+	if (!config.test) {
+		client.sendToAddress(address, amount, function(err) {
+			if (err) {
+				callback(err);
+			} else {
+				console.log('Sent ' + amount + ' to ' + address);
+			}
+		});
+	}
+	else {
+		console.log('[test call] Sending ' + amount + ' to ' + address);
+	}
 }
 module.exports = send;

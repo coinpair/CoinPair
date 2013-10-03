@@ -27,6 +27,7 @@ function transaction(tracker, database, currency, hash, stored) {
 	this.amount = 0;
 	this.txid = hash || '';
 	this.address = '';
+	this.toAddress = '';
 	this.category = '';
 	this.currency = currency;
 	this.from = currency;
@@ -72,8 +73,8 @@ function transaction(tracker, database, currency, hash, stored) {
 									//if it is, we emit the callback for a new txn
 									database.find(self.address, function(err, result) {
 										if (!err && result) {
-											console.log(result);
 											self.to = result.tocurrency;
+											self.toAddress = result.receiver;
 											self.emit('fresh', self, function(){
 												self.logic(self.complete);//calling for completion/handling
 											});

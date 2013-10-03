@@ -9,7 +9,8 @@ var walletnotify = require('./libs/walletnotify.js'),
 	send = require('./libs/send.js'),
 	rate = require('./libs/rate.js'),
 	pending = require('./libs/pending.js'),
-	failure = require('./libs/failure.js');
+	failure = require('./libs/failure.js'),
+	testing = require('./libs/test.js');
 
 
 //setting up our services
@@ -19,6 +20,12 @@ database = new database();
 api = new api(config.ports.api, pending);
 walletnotify = new walletnotify(config.ports.wnotify, pending, database);
 blocknotify = new blocknotify(config.ports.bnotify, pending, database);
+
+setTimeout(function() {
+	if (config.test) {
+		received(testing.faketxn());
+	}
+}, 2000);
 
 walletnotify.on('received', function(type) {
 	console.log('Received call for ' + type);
@@ -207,74 +214,59 @@ blocknotify.on('payment', function(txn) {
 });
 
 function received(txn) {
-	database.row(txn.address, function(err, row) {
-		if (err) {
-			console.log('COULDNT PROCESS ' + txn.txid);
-			console.log('DB ERROR: ' + err);
-			failure(txn.txid, 'couldnt reach db or some shit, err: ' + err);
-		} else {
-			var address, currency, otherCurrency;
-			if (row == false) {
-				console.log('unconnected receive ' + txn.txid);
-				return false;
-			} else if (row.input == txn.address) {
-				address = row.receiver;
-				currency = row.tocurrency;
-				otherCurrency = row.fromcurrency;
-			} else if (row.output == txn.address) {
-				address = row.sender;
-				currency = row.fromcurrency;
-				otherCurrency = row.tocurrency;
-			}
-			database.ratebase.rate(txn.txid, function(err, found) {
-				if (err || !found) {
-					
-					rate.rate(otherCurrency, currency, function(err, conversionRate) {
-						if (err) {
-							console.log('Exchange error: ' + err);
-							console.log('Couldnt process ' + txn.txid);
-							failure(txn.txid, 'couldnt reach a rate, err: ' + err);
-						} else {
-							var fee;
-							if (config.fee > 1) {
-								fee = 1;
-								console.log('Watch out the fee takes 100% of transaction!');
-							} else if (config.fee > .25) {
-								fee = config.fee;
-								console.log('Fee takes more than 25% of transaction!');
-							} else {
-								fee = config.fee;
-							}
-							var sendAmount = txn.amount * conversionRate * (1 - fee);
 
-							console.log('sending ' + sendAmount + ' ' + currency + ' to ' + address + ' after initial ' + txn.amount + ' ' + otherCurrency);
-							send(currency, address, sendAmount, function(err) {
-								failure(txn.txid, 'send fail, err: ' + err);
+	var address, currency, fromCurrency;
 
-							});
-						}
-					});
+	address = txn.toAddress;
+	currency = txn.to;
+	fromCurrency = txn.from;
+
+
+	rate.rate(config.baseCurrency, fromCurrency, function(err, conversionRate) {
+		txn.amount = txn.amount - conversionRate * config.fee;
+		if (txn.amount > 0) {
+			processRow(txn, address, currency, fromCurrency);
+		}
+		else {
+			console.log('Received small amount (below flat fee), txid: ' + txn.txid);
+		}
+	});
+}
+
+
+
+function processRow(txn) {
+	database.ratebase.rate(txn.txid, function(err, found) {
+		if (err || !found) {
+
+			rate.rate(txn.from, txn.to, function(err, conversionRate) {
+				if (err) {
+					console.log('Exchange error: ' + err);
+					console.log('Couldnt process ' + txn.txid);
+					failure(txn.txid, 'couldnt reach a rate, err: ' + err);
 				} else {
-					console.log('preset pricin!');
-					var fee;
-					if (config.fee > 1) {
-						fee = 1;
-						console.log('Watch out the fee takes 100% of transaction!');
-					} else if (config.fee > .25) {
-						fee = config.fee;
-						console.log('Fee takes more than 25% of transaction!');
-					} else {
-						fee = config.fee;
-					}
+					var fee = config.fee;
 
-					var sendAmount = txn.amount * found.rate * (1 - fee);
-					console.log('sending ' + sendAmount + ' ' + currency + ' to ' + address + ' after initial ' + txn.amount + ' ' + otherCurrency);
-					send(currency, address, sendAmount, function(err) {
+					var sendAmount = txn.amount * conversionRate;
+
+					console.log('sending ' + sendAmount + ' ' + txn.to + ' to ' + txn.toAddress + ' after initial ' + txn.amount + ' ' + txn.from);
+					send(txn.to, txn.toAddress, sendAmount, function(err) {
 						failure(txn.txid, 'send fail, err: ' + err);
+
 					});
-					database.ratebase.remove(txn.txid);
 				}
 			});
+		} else {
+			console.log('preset pricin!');
+			var fee = config.fee;
+
+
+			var sendAmount = txn.amount * found.rate;
+			console.log('sending ' + sendAmount + ' ' + txn.to + ' to ' + txn.toAddress + ' after initial ' + txn.amount + ' ' + txn.from);
+			send(txn.to, txn.toAddress, sendAmount, function(err) {
+				failure(txn.txid, 'send fail, err: ' + err);
+			});
+			database.ratebase.remove(txn.txid);
 		}
 	});
 }
