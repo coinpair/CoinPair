@@ -43,7 +43,7 @@ $('.to-receive').keyup(function() {
 	if (isNumber($(".to-receive").val())) {
 		toReceive = Number($(".to-receive").val());
 		if ($(".to-receive").val().length > 0) {
-			var amount = Math.ceil(toReceive/exRate * 10000)/10000;
+			var amount = Math.ceil(toReceive/exRate * 100000000)/100000000 + fee;
 			$('.rate-place').html(amount);
 		}
 	}
@@ -55,7 +55,8 @@ function isNumber(n) {
 
 var receiveCurrency = false,
 	currencyPair,
-	exRate;
+	exRate,
+	fee;
 
 function page(data) {
 	var time = new Date().getTime() / 1000 + data.timeTo;
@@ -65,7 +66,8 @@ function page(data) {
 	$('.receive-place').append(data.receiver);
 	$('.from-place').append(data.from.toUpperCase());
 	exRate = data.rate;
-	$('.rate-place').html(Math.ceil(toReceive/exRate * 10000)/10000);
+	fee = data.fee;
+	$('.rate-place').html(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee);
 	receiveCurrency = data.from;
 	currencyPair = data.from + '-' + data.to;
 
@@ -105,8 +107,8 @@ function startClock(seconds) {
 		calculateRate(currencyPair, function(err, rate) {
 			if (!err) {
 				exRate = rate.rate; //wow, descriptive line
-
-				$('.rate-place').html(Math.ceil(toReceive/exRate * 100000000)/100000000);
+				fee = rate.fee;
+				$('.rate-place').html(Math.ceil(toReceive/exRate * 100000000)/100000000+ fee);
 
 				var time = new Date().getTime() / 1000 + rate.timeTo;
 				startClock(time);

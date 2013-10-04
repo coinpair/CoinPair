@@ -10,7 +10,7 @@ var priceArray = [];
 var proccessDestroy = false;
 
 function rate() {
-	this.rate = function(from, to, callback) {
+	this.rate = function(from, to, callback) { //get rate
 		fetch(from, to, function(err, rate) {
 			if (!isNumber(rate) || rate == 0) {
 				callback('improper number received (most likely rate module down/not functioning/rate source down): ' + rate);
@@ -24,6 +24,20 @@ function rate() {
 	var self = this;
 	this.time;
 
+	this.fee = function(currency, callback) { //get fee in specified currency form
+		self.rate(config.baseCurrency, currency, function(err, conversionRate) {
+
+			if (err) {
+				callback(err);
+			} else {
+				var amount = conversionRate * config.fee;
+
+				amount = Math.ceil(amount * 100000000)/100000000;
+
+				callback(false, amount);
+			}
+		});
+	}
 
 	this.refresh = function() {
 		self.time = new Date().getTime() + config.ratePeriod * 1000;
@@ -71,11 +85,11 @@ function fetch(from, to, callback) {
 		}
 	}
 
-	callback(false, Math.ceil(newFrom / newTo * 100000000)/100000000);
+	callback(false, Math.ceil(newFrom / newTo * 100000000) / 100000000);
 
 }
 
-function usdPrice(currency, callback) {
+function usdPrice(currency, callback) { //getting usd price for specified currency, cant use direct because btce doesnt support
 	var pair = currency + '_' + 'usd'
 	jsonGet('http://btc-e.com/api/2/' + pair + '/ticker', function(err, json) {
 		if (err) {

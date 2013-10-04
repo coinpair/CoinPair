@@ -67,16 +67,25 @@ api.on('lookup', function(secureid, res) {
 								console.log('rate err: ' + err);
 								console.log('txn find err: ' + err2);
 							} else {
-								res.jsonp({
-									address: result.input,
-									receiver: result.receiver,
-									from: result.fromcurrency,
-									to: result.tocurrency,
-									rate: rateVal,
-									time: rate.time,
-									timeTo: rate.timeLeft(),
-									pending: pendingTxn,
-									history: results
+								rate.fee(from, function(err, fee) {
+
+									if (err) {
+										console.log('conversion fee err: ', err);
+										sendErr(res, 'Couldnt get exchange rate fee (server error)');
+									} else {
+										res.jsonp({
+											address: result.input,
+											receiver: result.receiver,
+											from: result.fromcurrency,
+											to: result.tocurrency,
+											rate: rateVal,
+											fee: fee,
+											time: rate.time,
+											timeTo: rate.timeLeft(),
+											pending: pendingTxn,
+											history: results
+										});
+									}
 								});
 							}
 						});
@@ -145,11 +154,22 @@ api.on('rate', function(from, to, res) {
 				sendErr(res, 'internal error (server fault)');
 				console.log('fetch rate err: ' + err);
 			} else {
-				res.jsonp({
-					rate: rateVal,
-					time: rate.time,
-					timeTo: rate.timeLeft()
+				rate.fee(from, function(err, fee) {
+
+					if (err) {
+						console.log('conversion fee err: ', err);
+						sendErr(res, 'Couldnt get exchange rate fee (server error)');
+					} else {
+
+						res.jsonp({
+							rate: rateVal,
+							time: rate.time,
+							timeTo: rate.timeLeft(),
+							fee: fee
+						});
+					}
 				});
+
 			}
 		});
 	}
@@ -226,8 +246,7 @@ function received(txn) {
 		txn.amount = txn.amount - conversionRate * config.fee;
 		if (txn.amount > 0) {
 			processRow(txn, address, currency, fromCurrency);
-		}
-		else {
+		} else {
 			console.log('Received small amount (below flat fee), txid: ' + txn.txid);
 		}
 	});
