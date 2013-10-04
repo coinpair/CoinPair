@@ -43,7 +43,7 @@ $('.to-receive').keyup(function() {
 	if (isNumber($(".to-receive").val())) {
 		toReceive = Number($(".to-receive").val());
 		if ($(".to-receive").val().length > 0) {
-			var amount = Math.ceil(toReceive/exRate * 100000000)/100000000 + fee;
+			var amount = parseFloat(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee).toFixed(8);
 			$('.rate-place').html(amount);
 		}
 	}
@@ -59,7 +59,7 @@ var receiveCurrency = false,
 	fee;
 
 function page(data) {
-	var time = new Date().getTime() / 1000 + data.timeTo;
+	var time = new Date().getTime() / 1000 + data.timeTo; //getting current time in seconds and adding timeto
 	startClock(time);
 
 	$('.address-place').append(data.address);
@@ -67,7 +67,9 @@ function page(data) {
 	$('.from-place').append(data.from.toUpperCase());
 	exRate = data.rate;
 	fee = data.fee;
-	$('.rate-place').html(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee);
+
+	var amount = parseFloat(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee).toFixed(8);
+	$('.rate-place').html(amount);
 	receiveCurrency = data.from;
 	currencyPair = data.from + '-' + data.to;
 
@@ -108,7 +110,8 @@ function startClock(seconds) {
 			if (!err) {
 				exRate = rate.rate; //wow, descriptive line
 				fee = rate.fee;
-				$('.rate-place').html(Math.ceil(toReceive/exRate * 100000000)/100000000+ fee);
+				var amount = parseFloat(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee).toFixed(8);
+				$('.rate-place').html(amount);
 
 				var time = new Date().getTime() / 1000 + rate.timeTo;
 				startClock(time);
@@ -118,12 +121,12 @@ function startClock(seconds) {
 }
 
 function clock(seconds, effect, callback) {
-	var diff = Math.ceil(seconds - new Date().getTime() / 1000);
-	if(diff >= 0){
+	var diff = Math.ceil(seconds - (new Date().getTime() / 1000));
+	if(diff > 0){
 		effect(diff);
 		setTimeout(function() {
-			clock(diff, effect, callback);
-		}, 1000);
+			clock(seconds, effect, callback);
+		}, 995);
 	}
 	else {
 		callback();
@@ -131,14 +134,15 @@ function clock(seconds, effect, callback) {
 }
 
 function calculateRate(pair, callback) {
+
 	$.ajax({
 		url: window.serverAddress + "/rate/" + pair + "/",
 		dataType: "jsonp",
 		async: false,
 		type: 'get',
 		success: function(data) {
-			callback(false, data);
 
+			callback(false, data);
 		},
 		error: function() {
 			callback(true);

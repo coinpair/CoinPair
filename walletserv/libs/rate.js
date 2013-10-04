@@ -96,7 +96,7 @@ function usdPrice(currency, callback) { //getting usd price for specified curren
 			callback(err);
 		} else {
 			if (isset(json.ticker.avg)) {
-				console.log(json.ticker.avg + ' for ' + currency);
+				
 				callback(false, json.ticker.avg, currency);
 			} else {
 				callback(json);

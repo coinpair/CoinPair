@@ -32,7 +32,7 @@ walletnotify.on('received', function(type) {
 });
 
 blocknotify.on('received', function() {
-	console.log('Block');
+	//console.log('Block');
 });
 
 pending.on('status', function(txn) {
@@ -67,7 +67,7 @@ api.on('lookup', function(secureid, res) {
 								console.log('rate err: ' + err);
 								console.log('txn find err: ' + err2);
 							} else {
-								rate.fee(from, function(err, fee) {
+								rate.fee(result.fromcurrency, function(err, fee) {
 
 									if (err) {
 										console.log('conversion fee err: ', err);
@@ -141,10 +141,17 @@ api.on('track', function(id, res) {
 
 api.on('rate', function(from, to, res) {
 	if (from == to) {
-		res.jsonp({
-			rate: 1,
-			time: rate.time,
-			timeTo: rate.timeLeft()
+		rate.fee(from, function(err, fee) {
+			if(err){
+				console.log('Get fee err: ' + err);
+				sendErr(res, 'Couldnt get fee (internal server error)');
+			}
+			res.jsonp({
+				rate: 1,
+				time: rate.time,
+				timeTo: rate.timeLeft(),
+				fee: fee
+			});
 		});
 	} else {
 
@@ -276,7 +283,6 @@ function processRow(txn) {
 				}
 			});
 		} else {
-			console.log('preset pricin!');
 			var fee = config.fee;
 
 
