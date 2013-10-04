@@ -249,19 +249,20 @@ function received(txn) {
 	fromCurrency = txn.from;
 
 
-	rate.rate(config.baseCurrency, fromCurrency, function(err, conversionRate) {
+	rate.fee(fromCurrency, function(err, conversionRate) {
+		var original = txn.amount;
 		txn.amount = txn.amount - conversionRate * config.fee;
 		if (txn.amount > 0) {
-			processRow(txn, address, currency, fromCurrency);
+			processRow(txn, original);
 		} else {
-			console.log('Received small amount (below flat fee), txid: ' + txn.txid);
+			console.log('Received small amount (below flat fee), txid: ' + txn.txid + ' amount: ' + original);
 		}
 	});
 }
 
 
 
-function processRow(txn) {
+function processRow(txn, original) {
 	database.ratebase.rate(txn.txid, function(err, found) {
 		if (err || !found) {
 
@@ -275,7 +276,7 @@ function processRow(txn) {
 
 					var sendAmount = txn.amount * conversionRate;
 
-					console.log('sending ' + sendAmount + ' ' + txn.to + ' to ' + txn.toAddress + ' after initial ' + txn.amount + ' ' + txn.from);
+					console.log('sending ' + sendAmount + ' ' + txn.to + ' to ' + txn.toAddress + ' after initial ' + original + ' ' + txn.from);
 					send(txn.to, txn.toAddress, sendAmount, function(err) {
 						failure(txn.txid, 'send fail, err: ' + err);
 

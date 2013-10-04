@@ -1,1 +1,0 @@
-testhash: couldnt reach a rate, err: improper number received: NaN
