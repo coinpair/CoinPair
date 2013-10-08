@@ -24,8 +24,44 @@ blocknotify = new blocknotify(config.ports.bnotify, pending, database);
 setTimeout(function() {
 	if (config.test) {
 		received(testing.faketxn());
+		if (config.loadTest) {
+			loadtest();
+		}
 	}
 }, 2000);
+
+var longest = 0;
+
+
+
+function loadtest() {
+	var from = 'btc',
+		to = 'btc',
+		rec = 'mq7se9wy2egettFxPbmn99cK8v5AFq55Lx',
+		start = new Date().getTime();
+
+	generateAddresses(from, to, function(err, inputAddy) {
+		if (err) {
+			sendErr(res, 'internal error (server fault)');
+			console.log('Generate address err: ' + err);
+		} else {
+			var id = makeid(20);
+			createRow(inputAddy, rec, from, to, id, function(err) {
+				if (err) {
+					sendErr(res, 'internal error (server fault)');
+					console.log('Create entry in db err: ' + err);
+				} else {
+					time = new Date().getTime() - start;
+					if (time > longest) {
+						longest = time;
+					}
+					console.log('Created! Execution time: ' + time + 'ms longest: ' + longest + ' ms');
+					loadtest();
+				}
+			});
+		}
+	});
+}
 
 walletnotify.on('received', function(type) {
 	console.log('Received call for ' + type);
@@ -140,9 +176,10 @@ api.on('track', function(id, res) {
 });
 
 api.on('rate', function(from, to, res) {
+	console.log('Rate lookup!');
 	if (from == to) {
 		rate.fee(from, function(err, fee) {
-			if(err){
+			if (err) {
 				console.log('Get fee err: ' + err);
 				sendErr(res, 'Couldnt get fee (internal server error)');
 			}

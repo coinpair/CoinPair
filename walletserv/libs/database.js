@@ -42,52 +42,28 @@ function database() {
 		});
 	}
 
+	this.query = function(query, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback(err);
+
+			} else {
+				client.query(query, function(err, rows) {
+					callback(err, rows);
+					done();
+				});
+			}
+		});
+	}
+
 	this.create = function(input, receiver, from, to, secureid, callback) {
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
 
 			} else {
-				client.query("insert into addresslist (input, receiver, fromcurrency, tocurrency, secureid) values ($1, $2, $3, $4, $5);", [input, receiver, from, to, secureid], function(err) {
-					callback(err);
-					done();
-				});
-			}
-		});
-	}
-
-	this.backaddress = function(index, address, callback) {
-		connect(function(err, done, client) {
-			if (err) {
-				callback(err);
-
-			} else {
-				client.query("update addresslist set sender=$1 where id=$2;", [address, index], function(err) {
-					callback(err);
-					done();
-				});
-			}
-		});
-	}
-	this.row = function(address, callback) {
-		connect(function(err, done, client) {
-			if (err) {
-				callback(err);
-
-			} else {
-				client.query("select * from addresslist where input=$1;", [address], function(err, row) {
-					if (err) {
-						callback(err);
-					} else {
-						if (row.rows.length > 1) {
-							callback('duplicate rows on address ' + address);
-						} else if (row.rows.length == 0) {
-							callback(false, false);
-						} else {
-							callback(false, row.rows[0]);
-						}
-
-					}
+				client.query("insert into addresslist (input, receiver, fromcurrency, tocurrency, secureid) values ($1, $2, $3, $4, $5);", [input, receiver, from, to, secureid], function(err, rows) {
+					callback(err, rows);
 					done();
 				});
 			}
@@ -136,14 +112,15 @@ function database() {
 	}
 	this.txnbase = {};
 
-	this.txnbase.create = function(secureid, hash, amount, date) {
+	this.txnbase.create = function(secureid, hash, amount, date, callback) {
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
 				done();
 			} else {
-				client.query("insert into txnbase (secureid, hash, amount, date) values ($1, $2, $3, $4);", [secureid, hash, amount, date], function(err) {
+				client.query("insert into txnbase (secureid, hash, amount, date) values ($1, $2, $3, $4);", [secureid, hash, amount, date], function(err, rows) {
 					if (err) console.log('txn insertion error!: ' + err);
+					callback(err, rows);
 					done();
 				});
 			}
@@ -178,7 +155,7 @@ function database() {
 	this.ratebase = {};
 
 	this.ratebase.create = function(hash, rate, callback) {
-		console.log('Setting a rate!');
+
 		connect(function(err, done, client) {
 			if (err) {
 				callback('rate Create error: ' + err);
@@ -194,15 +171,17 @@ function database() {
 			}
 		});
 	}
-	this.ratebase.remove = function(hash) {
-		console.log('Removin a rate!');
+	this.ratebase.remove = function(hash, callback) {
+
 		connect(function(err, done, client) {
 			if (err) {
 				console.log('rate remove of ' + hash + ' error: ' + err);
+				if (typeof callback != undefined) callback(err);
 				done();
 			} else {
-				client.query("delete from ratebase where hash=$1;", [hash], function(err) {
+				client.query("delete from ratebase where hash=$1;", [hash], function(err, rows) {
 					if (err) console.log('rate deletion error!: ' + err);
+					if (typeof callback != undefined) callback(err, rows);
 					done();
 				});
 			}
