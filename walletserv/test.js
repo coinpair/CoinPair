@@ -1,4 +1,5 @@
 var expect = require('expect.js'),
+	async = require('async'),
 	walletnotify = require('./libs/walletnotify.js'),
 	blocknotify = require('./libs/blocknotify.js'),
 	database = require('./libs/database.js'),
@@ -11,9 +12,20 @@ var expect = require('expect.js'),
 	rate = require('./libs/rate.js'),
 	pending = require('./libs/pending.js'),
 	failure = require('./libs/failure.js'),
+	request = require('request'),
 	testing = require('./libs/test.js');
 
+pending = new pending();
 database = new database();
+api = new api(config.ports.api, pending);
+
+
+describe('config', function() {
+	it('testing enabled', function(done) {
+		expect(config.test).to.be.ok();
+		done();
+	});
+});
 
 describe('Database', function() {
 
@@ -120,9 +132,99 @@ describe('Database', function() {
 	});
 
 });
-/*
-describe('Suite two', function() {
-	it(function(done) {
+
+describe('wallet', function() {
+	it('Send', function(done) {
+		async.forEach(config.allow.from, function(item, next) {
+			send(item, 'mq7se9wy2egettFxPbmn99cK8v5AFq55Lx', Math.pow(21, 9), function(err, success) {
+				expect(err.toString()).to.equal('Error: Invalid amount');
+				next();
+			}, true);
+		}, function() {
+			done();
+		});
+		//testing by sending an overly large amount, should error out
 
 	});
-}); */
+});
+
+describe('address', function() {
+	it('generate', function(done) {
+		async.forEach(config.allow.from, function(item, next) {
+			address(item, function(err, genAddress) {
+				expect(err).not.to.exist;
+				expect(genAddress.length).to.be.greaterThan(10);
+
+				next();
+			});
+		}, function() {
+			done();
+		});
+
+	});
+});
+
+describe('api', function() {
+	it('rate', function(done) {
+		request('http://127.0.0.1:' + config.ports.api + '/rate/' + config.allow.from[0] + '-' + config.allow.from[0] + '/', function(error, response, body) {
+			expect(response.statusCode).to.be(200);
+			expect(error).not.to.exist;
+
+			//self.emit('rate', seperated[0], seperated[1], res);
+
+		});
+		api.on('rate', function(from, to, res) {
+			res.send('OK');
+			expect(from).to.exist;
+			expect(to).to.exist;
+			expect(res).to.exist;
+			done();
+		});
+	});
+
+	it('create', function(done) {
+		request('http://127.0.0.1:' + config.ports.api + '/' + config.allow.from[0] + '-' + config.allow.from[0] + '/mq7se9wy2egettFxPbmn99cK8v5AFq55Lx/', function(error, response, body) {
+			expect(response.statusCode).to.be(200);
+			expect(error).not.to.exist;
+
+		});
+		//self.emit('request', req.params.from, req.params.to, req.params.rec, res);
+		api.on('request', function(from, to, address, res) {
+			res.send('OK');
+			expect(from).to.exist;
+			expect(to).to.exist;
+			expect(address).to.exist;
+			expect(res).to.exist;
+			done();
+		});
+	});
+
+	it('lookup', function(done) {
+		request('http://127.0.0.1:' + config.ports.api + '/lookup/01234567890123456789/', function(error, response, body) {
+			expect(response.statusCode).to.be(200);
+			expect(error).not.to.exist;
+
+		});
+		//self.emit('lookup', secureid, res);
+		api.on('lookup', function(secureid, res) {
+			res.send('OK');
+			expect(secureid).to.exist;
+			expect(res).to.exist;
+			done();
+		});
+	});
+	it('track', function(done) {
+		request('http://127.0.0.1:' + config.ports.api + '/track/01234567890123456789/', function(error, response, body) {
+			expect(response.statusCode).to.be(200);
+			expect(error).not.to.exist;
+
+		});
+		//self.emit('track', id, res);
+		api.on('track', function(secureid, res) {
+			res.send('OK');
+			expect(secureid).to.exist;
+			expect(res).to.exist;
+			done();
+		});
+	});
+});

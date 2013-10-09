@@ -49,7 +49,7 @@ function api(port, pending) {
 	});
 	app.get('/track/:id', function(req, res) {
 		var id = req.params.id;
-		if (!isset(id) || (id.length < 20 && id.length > 20)) {
+		if (!isset(id) || (id.length != 20)) {
 			sendErr(res, 'improper id');
 		} else {
 			self.emit('track', id, res);

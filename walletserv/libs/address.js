@@ -1,4 +1,4 @@
-//The walletnotify module!
+//The address module!
 
 var bitcoin = require('bitcoin'),
 	config = require('./../config.js');

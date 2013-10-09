@@ -17,30 +17,33 @@ var lclient = new bitcoin.Client({
 	pass: config.wallet.ltc.password
 });
 
-function send(currency, address, amount, callback) {
+function send(currency, address, amount, callback, ignore) {
+	if (typeof ignore === 'undefined') ignore = false;
 	if (currency == "btc") {
-		standardSend(bclient, address, amount, function(err) {
+		standardSend(bclient, address, amount, function(err, success) {
 			callback(err);
-		});
+		}, ignore);
 	} else if (currency == "ltc") {
-		standardSend(lclient, address, amount, function(err) {
-			callback(err);
-		});
+		standardSend(lclient, address, amount, function(err, success) {
+			callback(err, success);
+		}, ignore);
 	}
 }
 
-function standardSend(client, address, amount, callback) {
-	if (!config.test) {
+function standardSend(client, address, amount, callback, ignore) {
+
+	if (!config.test || ignore) {
 		client.sendToAddress(address, amount, function(err) {
 			if (err) {
-				callback(err);
+				callback(err, false);
 			} else {
-				console.log('Sent ' + amount + ' to ' + address);
+				console.log('[WALLET] Sent ' + amount + ' to ' + address);
+				callback(false, true);
 			}
 		});
-	}
-	else {
+	} else {
 		console.log('[test call] Sending ' + amount + ' to ' + address);
+		callback(false, true);
 	}
 }
 module.exports = send;
