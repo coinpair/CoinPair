@@ -3,10 +3,10 @@
 var net = require('net'),
 	events = require('events').EventEmitter,
 	util = require('util'),
-	transaction = require('./transaction.js');
+	config = require('../config.js');
 
 
-function walletNotify(port, pending, database) {
+function walletNotify(port) {
 
 	var self = this;
 
@@ -23,17 +23,8 @@ function walletNotify(port, pending, database) {
 			if (json == null) {
 				console.log('Error parsing: ' + str);
 			} else {
-				self.emit('received', json.type);
-
-				var txn = new transaction(pending, database, json.type, json.hash);
-				txn.on('payment', function(transact) {
-					self.emit('payment', transact);
-				});
-
-				txn.on('fresh', function(transact, callback){
-					self.emit('fresh', transact,callback);
-				});
-
+				if(config.allow.from.indexOf(json.type) != -1)self.emit('notify', json.hash, json.type);
+				else self.emit('error', 'Received wnotify for unallowed type');
 			}
 		});
 

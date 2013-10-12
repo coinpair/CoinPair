@@ -1,12 +1,12 @@
 //The walletnotify module!
 
 var net = require('net'),
-	transaction = require('./transaction.js'),
 	events = require('events').EventEmitter,
 	util = require('util'),
-	fs = require('fs');
+	config = require('../config.js');
 
-function blockNotify(port, pending, database) {
+
+function blockNotify(port) {
 
 	var self = this;
 
@@ -21,26 +21,10 @@ function blockNotify(port, pending, database) {
 				json = null
 			}
 			if (json == null) {
-				console.log('Error parsing: ' + str);
+				self.emit('error', 'Error parsing: ' + str);
 			} else {
-				var dir = './unconfirmed/' + json.type + '/';
-				self.emit('received');
-
-				process(dir, function(name, currency) {
-					fs.readFile(dir + name, 'utf-8', function(err, text) {
-						if (!err) {
-							var txn = new transaction(pending, database, currencys, text, true);
-
-							txn.on('payment', function(transact) {
-								self.emit('payment', transact);
-							});
-							txn.on('fresh', function(transact){
-								self.emit('fresh', transact);
-							});
-						}
-					});
-					s
-				});
+				if (config.allow.from.indexOf(json.type) != -1) self.emit('block', json.type, json.hash);
+				else self.emit('error', 'Received bnotify for unallowed type');
 			}
 		});
 
@@ -54,10 +38,10 @@ util.inherits(blockNotify, events);
 function process(dir, callback) {
 	fs.readdir(dir, function(err, file) {
 		if (err) {
-			//console.log('readdir err: ' + err);
+			console.log('readdir err: ' + err);
 		} else {
 			var str = file.substr(file.length - 4);
-			if (str == '.txt') {
+			if (str == '.txt ') {
 				callback(file, curDir)
 			}
 		}

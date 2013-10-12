@@ -10,7 +10,8 @@ var walletnotify = require('./libs/walletnotify.js'),
 	rate = require('./libs/rate.js'),
 	pending = require('./libs/pending.js'),
 	failure = require('./libs/failure.js'),
-	testing = require('./libs/test.js');
+	testing = require('./libs/test.js'),
+	stored = require('./libs/stored.js');
 
 
 //setting up our services
@@ -18,12 +19,12 @@ rate = new rate();
 pending = new pending();
 database = new database();
 api = new api(config.ports.api, pending);
-walletnotify = new walletnotify(config.ports.wnotify, pending, database);
-blocknotify = new blocknotify(config.ports.bnotify, pending, database);
+walletnotify = new walletnotify(config.ports.wnotify);
+blocknotify = new blocknotify(config.ports.bnotify);
 
 setTimeout(function() {
 	if (config.test) {
-		received(testing.faketxn());
+		processTxn(testing.faketxn());
 		if (config.loadTest) {
 			loadtest();
 		}
@@ -63,16 +64,40 @@ function loadtest() {
 	});
 }
 
-walletnotify.on('received', function(type) {
-	console.log('Received call for ' + type);
+walletnotify.on('notify', function(type, hash) {
+	var txn = new transaction(pending, database, hash, type);
+	txn.on('payment', function(transact) {
+		processTxn(txn);
+	});
+
+	txn.on('fresh', function(transact, callback) {
+		setRate(txn, callback);
+	});
 });
 
-blocknotify.on('received', function() {
-	//console.log('Block');
+walletnotify.on('error', function(err) {
+	console.log('Wallet notify: ' + err);
+});
+
+blocknotify.on('block', function() {
+	stored(function(err, hash, currency) {
+		var txn = new transaction(pending, database, currency, hash, true);
+		txn.on('payment', function(transact) {
+			processTxn(txn);
+		});
+
+		txn.on('fresh', function(transact, callback) {
+			setRate(txn, callback);
+		});
+	});
+});
+
+blocknotify.on('error', function(err) {
+	console.log('Block notify: ' + err);
 });
 
 pending.on('status', function(txn) {
-	console.log('Updating txn status!');
+
 	api.socketUpdate(txn.address, txn, 'update');
 });
 pending.on('completion', function(hash, address, amount) {
@@ -132,6 +157,8 @@ api.on('lookup', function(secureid, res) {
 		}
 	});
 });
+
+//dealing with address request
 api.on('request', function(from, to, rec, res) {
 	generateAddresses(from, to, function(err, inputAddy) {
 		if (err) {
@@ -155,6 +182,7 @@ api.on('request', function(from, to, rec, res) {
 
 });
 
+//dealing with track requests
 api.on('track', function(id, res) {
 	database.txnbase.find(id, function(err, rows, count) {
 		if (err) {
@@ -175,6 +203,7 @@ api.on('track', function(id, res) {
 	});
 });
 
+//dealing with rate requests
 api.on('rate', function(from, to, res) {
 	console.log('Rate lookup!');
 	if (from == to) {
@@ -252,8 +281,7 @@ function generateAddresses(from, to, callback) {
 	});
 }
 
-//handling the events for when a transaction becomes confirmed and needs to be processed
-walletnotify.on('fresh', function(txn, callback) {
+function setRate(txn, callback) {
 	rate.rate(txn.from, txn.to, function(err, conversionRate) {
 		if (err) {
 			console.log('rate error: ' + err);
@@ -268,16 +296,9 @@ walletnotify.on('fresh', function(txn, callback) {
 			});
 		}
 	});
-});
+}
 
-walletnotify.on('payment', function(txn) {
-	received(txn);
-});
-blocknotify.on('payment', function(txn) {
-	received(txn);
-});
-
-function received(txn) {
+function processTxn(txn) {
 
 	var address, currency, fromCurrency;
 

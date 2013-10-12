@@ -3,22 +3,20 @@ var expect = require('expect.js'),
 	walletnotify = require('./libs/walletnotify.js'),
 	blocknotify = require('./libs/blocknotify.js'),
 	database = require('./libs/database.js'),
-	transaction = require('./libs/transaction.js'),
 	api = require('./libs/api.js'),
-	fs = require('fs'),
+	net = require('net'),
 	config = require('./config.js'),
 	address = require('./libs/address.js'),
 	send = require('./libs/send.js'),
 	rate = require('./libs/rate.js'),
 	pending = require('./libs/pending.js'),
-	failure = require('./libs/failure.js'),
-	request = require('request'),
-	testing = require('./libs/test.js');
+	request = require('request');
 
 pending = new pending();
 database = new database();
 api = new api(config.ports.api, pending);
-
+blocknotify = new blocknotify(config.ports.bnotify);
+walletnotify = new walletnotify(config.ports.wnotify);
 
 describe('config', function() {
 	it('testing enabled', function(done) {
@@ -227,4 +225,32 @@ describe('api', function() {
 			done();
 		});
 	});
+});
+
+describe('notify', function() {
+	it('block', function(done) {
+
+		var client = net.connect({
+				port: config.ports.bnotify
+			},
+			function() { //'connect' listener
+				client.write('{"type": "' + config.allow.from[0] + '", "hash": "garglegarglegargle"}');
+				blocknotify.on('block', function() {
+					done();
+				})
+			});
+	});
+	it('wallet', function(done) {
+
+		var client = net.connect({
+				port: config.ports.wnotify
+			},
+			function() { //'connect' listener
+				client.write('{"type": "' + config.allow.from[0] + '", "hash": "garglegarglegargle"}');
+				walletnotify.on('notify', function() {
+					done();
+				})
+			});
+	});
+
 });
