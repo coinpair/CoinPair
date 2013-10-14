@@ -12,7 +12,7 @@ io.set('log level', 1);
 var allowedFrom = config.allow.from;
 var allowedTo = config.allow.to;
 
-function api(port, pending) {
+function api(port) {
 	var self = this;
 
 	self.socketUpdate = function(room, data, events) {
@@ -32,11 +32,11 @@ function api(port, pending) {
 					if (req.params.rec.length >= 30) {
 						self.emit('request', req.params.from, req.params.to, req.params.rec, res);
 					} else {
-					
+
 						sendErr(res, 'invalid address')
 					}
 				} else {
-					
+
 					sendErr(res, 'missing receiving address');
 				}
 			} else {
@@ -96,25 +96,6 @@ function api(port, pending) {
 			console.log('sending message');
 			io.sockets. in (data.room).emit('message', data);
 		});
-	});
-
-	app.get('/list/:address', function(req, res) {
-		if (isset(req.params.address)) {
-			pending.findAddy(req.params.address, function(result) {
-				if (result) {
-					res.jsonp({
-						status: 'found',
-						txn: result
-					});
-				} else {
-					res.jsonp({
-						status: 'notfound'
-					})
-				}
-			});
-		} else {
-			res.send(404, 'NOT FOUND');
-		}
 	});
 
 	app.on('error', function(err) {

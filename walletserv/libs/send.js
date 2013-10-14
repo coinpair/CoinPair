@@ -1,31 +1,18 @@
 //The wallet!
 
-var bitcoin = require('bitcoin'),
+var wallet = require('../libs/wallet.js'),
 	config = require('./../config.js');
-
-var bclient = new bitcoin.Client({
-	host: config.wallet.btc.host,
-	port: config.wallet.btc.port,
-	user: config.wallet.btc.username,
-	pass: config.wallet.btc.password
-});
-
-var lclient = new bitcoin.Client({
-	host: config.wallet.ltc.host,
-	port: config.wallet.ltc.port,
-	user: config.wallet.ltc.username,
-	pass: config.wallet.ltc.password
-});
+wallet = new wallet();
 
 function send(currency, address, amount, callback, ignore) {
+
 	if (typeof ignore === 'undefined') ignore = false;
-	if (currency == "btc") {
-		standardSend(bclient, address, amount, function(err, success) {
+	var client = wallet.find(currency);
+	if (client == false) {
+		callback('Couldnt use specified currency wallet! (most likely not setup in config?');
+	} else {
+		standardSend(client, address, amount, function(err, success) {
 			callback(err);
-		}, ignore);
-	} else if (currency == "ltc") {
-		standardSend(lclient, address, amount, function(err, success) {
-			callback(err, success);
 		}, ignore);
 	}
 }

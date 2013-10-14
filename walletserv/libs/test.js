@@ -15,7 +15,7 @@ testing.faketxn = function(){
 	txn.category = '';
 	txn.currency = 'btc';
 	txn.from = 'btc'
-	txn.to = 'ltc';
+	txn.to = 'btc';
 
 
 	return txn;

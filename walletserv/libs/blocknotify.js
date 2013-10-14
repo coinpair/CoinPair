@@ -35,17 +35,4 @@ function blockNotify(port) {
 
 util.inherits(blockNotify, events);
 
-function process(dir, callback) {
-	fs.readdir(dir, function(err, file) {
-		if (err) {
-			console.log('readdir err: ' + err);
-		} else {
-			var str = file.substr(file.length - 4);
-			if (str == '.txt ') {
-				callback(file, curDir)
-			}
-		}
-	});
-}
-
 module.exports = blockNotify;

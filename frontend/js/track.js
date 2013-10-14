@@ -80,20 +80,20 @@ function page(data) {
 
 	for (var i = 0; i < data.pending.length; i++) {
 		var element = data.pending[i];
-		setPending(element.hash, element.amount, element.confirmations);
+		setPending(element.txid, element.amount, element.confirmations);
 	}
 	for (var i = 0; i < data.history.length; i++) {
 		var element = data.history[i];
-		addToTable(element.hash, element.amount, element.date);
+		addToTable(element.txid, element.amount, element.date);
 	}
 
 	var connection = subscribe(data.address);
 	connection.on('update', function(data) {
-		setPending(data.hash, data.amount, data.confirmations);
+		setPending(data.txid, data.amount, data.confirmations);
 	});
 	connection.on('complete', function(data) {
-		removePending(data.hash);
-		addToTable(data.hash, data.amount, new Date().toString('yyyy-MM-dd'));
+		removePending(data.txid);
+		addToTable(data.txid, data.amount, new Date().toString('yyyy-MM-dd'));
 	});
 }
 
@@ -150,13 +150,13 @@ function calculateRate(pair, callback) {
 	});
 }
 
-function setPending(hash, amount, confirms) {
-	$('.' + hash).remove();
-	$('.pending-place').append('<li class="list-group-item ' + hash + '"><span class="badge">' + confirms + ' confirms</span><span class="label label-primary">' + amount + ' ' + receiveCurrency + '</span> ' + hash + '</li>');
+function setPending(txid, amount, confirms) {
+	$('.' + txid).remove();
+	$('.pending-place').append('<li class="list-group-item ' + txid + '"><span class="badge">' + confirms + ' confirms</span><span class="label label-primary">' + amount + ' ' + receiveCurrency + '</span> ' + txid + '</li>');
 }
 
-function removePending(hash) {
-	$('.' + hash).remove();
+function removePending(txid) {
+	$('.' + txid).remove();
 }
 
 function subscribe(address) {

@@ -75,24 +75,22 @@ function transaction(tracker, database, currency, hash, stored) {
 										if (!err && result) {
 											self.to = result.tocurrency;
 											self.toAddress = result.receiver;
-											self.emit('fresh', self, function(){
-												self.logic(self.complete);//calling for completion/handling
+											self.emit('fresh', self, function() {
+												self.logic(self.complete); //calling for completion/handling
 											});
 
-											
-										}
-										else if (err) {
+
+										} else if (err) {
 											console.log('database finding error: ' + err);
 										}
-										
+
 									});
 
-								}
-								else {
-									self.logic(self.complete);//calling for completion/handling
+								} else {
+									self.logic(self.complete); //calling for completion/handling
 								}
 							});
-							
+
 
 						}
 					}

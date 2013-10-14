@@ -8,19 +8,24 @@ var walletnotify = require('./libs/walletnotify.js'),
 	address = require('./libs/address.js'),
 	send = require('./libs/send.js'),
 	rate = require('./libs/rate.js'),
-	pending = require('./libs/pending.js'),
 	failure = require('./libs/failure.js'),
 	testing = require('./libs/test.js'),
+	txnManager = require('./libs/txnManager.js'),
 	stored = require('./libs/stored.js');
 
 
 //setting up our services
 rate = new rate();
-pending = new pending();
 database = new database();
-api = new api(config.ports.api, pending);
+api = new api(config.ports.api);
 walletnotify = new walletnotify(config.ports.wnotify);
 blocknotify = new blocknotify(config.ports.bnotify);
+
+txnManager = new txnManager(function(txn, callback) {
+	//transaction logic
+	if (txn.confirmations == 1) callback(false);
+	else callback(true);
+});
 
 setTimeout(function() {
 	if (config.test) {
@@ -29,7 +34,7 @@ setTimeout(function() {
 			loadtest();
 		}
 	}
-}, 2000);
+}, 4000);
 
 var longest = 0;
 
@@ -64,47 +69,39 @@ function loadtest() {
 	});
 }
 
-walletnotify.on('notify', function(type, hash) {
-	var txn = new transaction(pending, database, hash, type);
-	txn.on('payment', function(transact) {
-		processTxn(txn);
-	});
+txnManager.on('payment', function(txn) {
+	processTxn(txn);
+	api.socketUpdate(txn.address, {
+		hash: txn.txid,
+		amount: txn.amount
+	}, 'complete');
+});
 
-	txn.on('fresh', function(transact, callback) {
-		setRate(txn, callback);
-	});
+txnManager.on('queued', function(txn) {
+	api.socketUpdate(txn.address, txn, 'update');
+});
+txnManager.on('new', function(txn) {
+	setRate(txn);
+});
+txnManager.on('error', function(err) {
+	console.log('txnman: ' + err);
+});
+
+walletnotify.on('notify', function(hash, type) {
+
+	txnManager.update(hash, type);
 });
 
 walletnotify.on('error', function(err) {
 	console.log('Wallet notify: ' + err);
 });
 
-blocknotify.on('block', function() {
-	stored(function(err, hash, currency) {
-		var txn = new transaction(pending, database, currency, hash, true);
-		txn.on('payment', function(transact) {
-			processTxn(txn);
-		});
-
-		txn.on('fresh', function(transact, callback) {
-			setRate(txn, callback);
-		});
-	});
+blocknotify.on('block', function(type) {
+	txnManager.block(type);
 });
 
 blocknotify.on('error', function(err) {
 	console.log('Block notify: ' + err);
-});
-
-pending.on('status', function(txn) {
-
-	api.socketUpdate(txn.address, txn, 'update');
-});
-pending.on('completion', function(hash, address, amount) {
-	api.socketUpdate(address, {
-		hash: hash,
-		amount: amount
-	}, 'complete');
 });
 
 //Dealing with api requests for a bitcoin address
@@ -116,44 +113,44 @@ api.on('lookup', function(secureid, res) {
 		} else if (!address) {
 			sendErr(res, 'couldnt fine address')
 		} else {
+			var pendingTxn = txnManager.find(result.input);
 
-			pending.findAddy(result.input, function(pendingTxn) {
-				rate.rate(result.fromcurrency, result.tocurrency, function(err, rateVal) {
-					if (err) {
-						sendErr(res, 'internal error (server fault)');
-					} else {
-						database.txnbase.find(secureid, function(err2, results) {
-							if (err || err2) {
-								sendErr(res, 'internal error (server fault)');
-								console.log('rate err: ' + err);
-								console.log('txn find err: ' + err2);
-							} else {
-								rate.fee(result.fromcurrency, function(err, fee) {
+			rate.rate(result.fromcurrency, result.tocurrency, function(err, rateVal) {
+				if (err) {
+					sendErr(res, 'internal error (server fault)');
+				} else {
+					database.txnbase.find(secureid, function(err2, results) {
+						if (err || err2) {
+							sendErr(res, 'internal error (server fault)');
+							console.log('rate err: ' + err);
+							console.log('txn find err: ' + err2);
+						} else {
+							rate.fee(result.fromcurrency, function(err, fee) {
 
-									if (err) {
-										console.log('conversion fee err: ', err);
-										sendErr(res, 'Couldnt get exchange rate fee (server error)');
-									} else {
-										res.jsonp({
-											address: result.input,
-											receiver: result.receiver,
-											from: result.fromcurrency,
-											to: result.tocurrency,
-											rate: rateVal,
-											fee: fee,
-											time: rate.time,
-											timeTo: rate.timeLeft(),
-											pending: pendingTxn,
-											history: results
-										});
-									}
-								});
-							}
-						});
-					}
-				});
-
+								if (err) {
+									console.log('conversion fee err: ', err);
+									sendErr(res, 'Couldnt get exchange rate fee (server error)');
+								} else {
+									res.jsonp({
+										address: result.input,
+										receiver: result.receiver,
+										from: result.fromcurrency,
+										to: result.tocurrency,
+										rate: rateVal,
+										fee: fee,
+										time: rate.time,
+										timeTo: rate.timeLeft(),
+										pending: pendingTxn,
+										history: results
+									});
+								}
+							});
+						}
+					});
+				}
 			});
+
+
 		}
 	});
 });
@@ -205,7 +202,7 @@ api.on('track', function(id, res) {
 
 //dealing with rate requests
 api.on('rate', function(from, to, res) {
-	console.log('Rate lookup!');
+	
 	if (from == to) {
 		rate.fee(from, function(err, fee) {
 			if (err) {
@@ -281,20 +278,22 @@ function generateAddresses(from, to, callback) {
 	});
 }
 
-function setRate(txn, callback) {
-	rate.rate(txn.from, txn.to, function(err, conversionRate) {
-		if (err) {
-			console.log('rate error: ' + err);
-			console.log('Couldnt rate lock ' + txn.txid);
-			callback();
-		} else {
-			database.ratebase.create(txn.txid, conversionRate, function(err) {
-				if (err) {
-					console.log("Couldnt rate lock " + txn.txid + ", got error: " + err);
-				}
-				callback();
-			});
-		}
+function setRate(txn) {
+	database.find(txn.address, function(err, result) {
+		rate.rate(txn.from, result.tocurrency, function(err, conversionRate) {
+			if (err) {
+				console.log('rate error: ' + err);
+				console.log('Couldnt rate lock ' + txn.txid);
+
+			} else {
+				database.ratebase.create(txn.txid, conversionRate, function(err) {
+					if (err) {
+						console.log("Couldnt rate lock " + txn.txid + ", got error: " + err);
+					}
+
+				});
+			}
+		});
 	});
 }
 
@@ -323,7 +322,6 @@ function processTxn(txn) {
 function processRow(txn, original) {
 	database.ratebase.rate(txn.txid, function(err, found) {
 		if (err || !found) {
-
 			rate.rate(txn.from, txn.to, function(err, conversionRate) {
 				if (err) {
 					console.log('Exchange error: ' + err);
@@ -336,7 +334,7 @@ function processRow(txn, original) {
 
 					console.log('sending ' + sendAmount + ' ' + txn.to + ' to ' + txn.toAddress + ' after initial ' + original + ' ' + txn.from);
 					send(txn.to, txn.toAddress, sendAmount, function(err) {
-						failure(txn.txid, 'send fail, err: ' + err);
+						if (err) failure(txn.txid, 'send fail, err: ' + err);
 
 					});
 				}
@@ -348,7 +346,7 @@ function processRow(txn, original) {
 			var sendAmount = txn.amount * found.rate;
 			console.log('sending ' + sendAmount + ' ' + txn.to + ' to ' + txn.toAddress + ' after initial ' + txn.amount + ' ' + txn.from);
 			send(txn.to, txn.toAddress, sendAmount, function(err) {
-				failure(txn.txid, 'send fail, err: ' + err);
+				if (err) failure(txn.txid, 'send fail, err: ' + err);
 			});
 			database.ratebase.remove(txn.txid);
 		}

@@ -95,7 +95,7 @@ function usdPrice(currency, callback) { //getting usd price for specified curren
 		if (err) {
 			callback(err);
 		} else {
-			if (isset(json.ticker.avg)) {
+			if (isset(json) && isset(isset(json.ticker))) {
 				
 				callback(false, json.ticker.avg, currency);
 			} else {
@@ -119,6 +119,7 @@ function jsonGet(url, callback) {
 				callback(e);
 				return;
 			}
+
 			callback(false, foo);
 		} else {
 			callback(error);
