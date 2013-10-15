@@ -23,13 +23,13 @@ blocknotify = new blocknotify(config.ports.bnotify);
 
 txnManager = new txnManager(function(txn, callback) {
 	//transaction logic
-	if (txn.confirmations == 0) callback(false);
+	if (txn.confirmations >= 21) callback(false);
 	else callback(true);
 });
 
 setTimeout(function() {
 	//txnManager.block('btc');
-	//txnManager.update('9224da426e9b226181ab65d40919ac5fd3818b65ab1b41ea08a5060a2403076f', 'btc');
+	txnManager.update('3433c799b1bcf96d9abdb0b68257083b333096e4ce7c1885022df8d5ed4478a6', 'btc');
 }, 4000);
 
 var longest = 0;
@@ -66,8 +66,8 @@ function loadtest() {
 }
 
 txnManager.on('payment', function(txn) {
-	console.log('payment!');
 	processTxn(txn);
+	console.log('[COMM] Notifying ' + txn.address + ' of completion');
 	api.socketUpdate(txn.address, {
 		hash: txn.txid,
 		amount: txn.amount
@@ -75,10 +75,11 @@ txnManager.on('payment', function(txn) {
 });
 
 txnManager.on('queued', function(txn) {
+	console.log('[COMM] Notifying ' + txn.address + ' of update (confirms: ' + txn.confirmations + ')');
 	api.socketUpdate(txn.address, txn, 'update');
 });
 txnManager.on('new', function(txn) {
-	console.log('Setting rate!');
+	console.log('[RATE] Setting rate for txn ' + txn.txid);
 	setRate(txn);
 });
 txnManager.on('error', function(err) {
@@ -86,7 +87,7 @@ txnManager.on('error', function(err) {
 });
 
 walletnotify.on('notify', function(hash, type) {
-
+	console.log('[NOTIFICATION] received notify from wallet clients');
 	txnManager.update(hash, type);
 });
 
@@ -95,6 +96,7 @@ walletnotify.on('error', function(err) {
 });
 
 blocknotify.on('block', function(type) {
+	console.log('[BLOCK]');
 	txnManager.block(type);
 });
 
@@ -327,10 +329,11 @@ function processTxn(txn) {
 
 
 function processRow(txn, original, row) {
-	var toCurrency = row.tocurrency,
-		receiver = row.receiver;
+
 	database.ratebase.rate(txn.txid, function(err, found) {
 		if (err || !found) {
+			var toCurrency = row.tocurrency,
+				receiver = row.receiver;
 			rate.rate(txn.currency, toCurrency, function(err, conversionRate) {
 				if (err) {
 					console.log('Exchange error: ' + err);
@@ -346,8 +349,8 @@ function processRow(txn, original, row) {
 						if (err) failure(txn.txid, 'send fail, err: ' + err);
 						else {
 							//function(secureid, hash, amount, date, callback)
-							database.txnbase.create(row.secureid, txn.txid, txn.amount, new Date().toString('yyyy-MM-dd'), function(){
-								if(err)console.log('txnbase create err: ' + err);
+							database.txnbase.create(row.secureid, txn.txid, txn.amount, new Date().toString('yyyy-MM-dd'), function() {
+								if (err) console.log('txnbase create err: ' + err);
 								console.log('Created record of txn');
 							});
 						}
@@ -358,10 +361,9 @@ function processRow(txn, original, row) {
 		} else {
 			var fee = config.fee;
 
-
 			var sendAmount = txn.amount * found.rate;
-			console.log('sending ' + sendAmount + ' ' + txn.to + ' to ' + txn.toAddress + ' after initial ' + txn.amount + ' ' + txn.from);
-			send(txn.to, txn.toAddress, sendAmount, function(err) {
+			console.log('sending ' + sendAmount + ' ' + txn.currency + ' to ' + row.receiver + ' after initial ' + original + ' ' + txn.currency);
+			send(txn.currency, row.receiver, sendAmount, function(err) {
 				if (err) failure(txn.txid, 'send fail, err: ' + err);
 			});
 			database.ratebase.remove(txn.txid);

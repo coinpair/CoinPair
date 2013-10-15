@@ -47,23 +47,23 @@ function txnManager(logic) {
 						if (wait) {
 							if (self.add(txn, self.table)) self.emit('new', txn);
 							self.emit('queued', txn);
-							if (txn.confirmations >= 2) {
+							if (txn.confirmations >= 1) {
 								stored.store(txn.txid, txn.currency, function(err) {
 									if (err) self.emit('error', 'could not store ' + txn.hash + ' for processing');
 								});
 							}
 						} else {
-							if (txn.confirmations > 2) {
+							if (txn.confirmations > 1) {
 								stored.unstore(txn.txid, txn.currency, function(err) {
 
 									if (err) throw new Error("Transaction not deleted!");
 									else {
-										self.remove(txn, self.table);
+										self.remove(txn);
 										self.emit('payment', txn);
 									}
 								});
 							} else {
-								self.remove(txn, self.table);
+								self.remove(txn);
 								self.emit('payment', txn);
 							}
 

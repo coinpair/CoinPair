@@ -176,19 +176,18 @@ function database() {
 		connect(function(err, done, client) {
 			if (err) {
 				console.log('rate remove of ' + hash + ' error: ' + err);
-				if (typeof callback != undefined) callback(err);
+				if (typeof callback !== 'undefined') callback(err);
 				done();
 			} else {
 				client.query("delete from ratebase where hash=$1;", [hash], function(err, rows) {
 					if (err) console.log('rate deletion error!: ' + err);
-					if (typeof callback != undefined) callback(err, rows);
+					if (typeof callback !== 'undefined') callback(err, rows);
 					done();
 				});
 			}
 		});
 	}
 	this.ratebase.rate = function(hash, callback) {
-		console.log('Getting rate!');
 		connect(function(err, done, client) {
 			if (err) {
 				callback('rate Create error: ' + err);

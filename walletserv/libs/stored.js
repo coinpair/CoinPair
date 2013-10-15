@@ -25,9 +25,11 @@ function stored() {
 	this.unstore = function(hash, currency, callback) {
 		currency = currency.toLowerCase();
 		var dir = "./unconfirmed/" + currency + '/' + hash + ".txt";
-		fs.exists(file, function(exists) {
+		fs.exists(dir, function(exists) {
+			
 			if (exists) {
-				fs.unlink(dir + '/' + hash + ".txt", function(err) {
+				fs.unlink(dir, function(err) {
+					
 					if (err) {
 						callback(err);
 

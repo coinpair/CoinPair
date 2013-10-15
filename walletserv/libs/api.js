@@ -16,7 +16,6 @@ function api(port) {
 	var self = this;
 
 	self.socketUpdate = function(room, data, events) {
-		console.log('Sending data to room ' + room);
 		io.sockets. in (room).emit(events, data);
 	};
 
