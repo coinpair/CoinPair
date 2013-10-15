@@ -141,7 +141,7 @@ function calculateRate(pair, callback) {
 		async: false,
 		type: 'get',
 		success: function(data) {
-
+			console.log(data);
 			callback(false, data);
 		},
 		error: function() {
@@ -203,6 +203,7 @@ function lookup(id, callback) {
 		async: false,
 		type: 'get',
 		success: function(data) {
+			console.log(data);
 			callback(false, data);
 		},
 		error: function() {

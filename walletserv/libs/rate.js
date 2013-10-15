@@ -11,6 +11,12 @@ var proccessDestroy = false;
 
 function rate() {
 	this.rate = function(from, to, callback) { //get rate
+		from = from.toLowerCase();
+		to = to.toLowerCase();
+		if (from == to) {
+			callback(false, 1);
+			return;
+		}
 		fetch(from, to, function(err, rate) {
 			if (!isNumber(rate) || rate == 0) {
 				callback('improper number received (most likely rate module down/not functioning/rate source down): ' + rate);
@@ -32,7 +38,7 @@ function rate() {
 			} else {
 				var amount = conversionRate * config.fee;
 
-				amount = Math.ceil(amount * 100000000)/100000000;
+				amount = Math.ceil(amount * 100000000) / 100000000;
 
 				callback(false, amount);
 			}
@@ -72,6 +78,7 @@ function rate() {
 
 
 function fetch(from, to, callback) {
+
 	from = from.toLowerCase();
 	to = to.toLowerCase();
 	var newFrom = false,
@@ -96,7 +103,7 @@ function usdPrice(currency, callback) { //getting usd price for specified curren
 			callback(err);
 		} else {
 			if (isset(json) && isset(isset(json.ticker))) {
-				
+
 				callback(false, json.ticker.avg, currency);
 			} else {
 				callback(json);

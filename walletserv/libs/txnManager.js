@@ -45,21 +45,27 @@ function txnManager(logic) {
 
 					logic(txn, function(wait) {
 						if (wait) {
-							if (add(txn, self.table)) self.emit('new', txn);
+							if (self.add(txn, self.table)) self.emit('new', txn);
 							self.emit('queued', txn);
 							if (txn.confirmations >= 2) {
-								stored.store(txn.hash, txn.currency, function(err) {
+								stored.store(txn.txid, txn.currency, function(err) {
 									if (err) self.emit('error', 'could not store ' + txn.hash + ' for processing');
 								});
 							}
 						} else {
-							stored.unstore(txn.hash, txn.currency, function(err) {
-								if (err) throw new Error("Transaction not deleted!");
-								else {
-									remove(txn, self.table);
-									self.emit('payment', txn);
-								}
-							});
+							if (txn.confirmations > 2) {
+								stored.unstore(txn.txid, txn.currency, function(err) {
+
+									if (err) throw new Error("Transaction not deleted!");
+									else {
+										self.remove(txn, self.table);
+										self.emit('payment', txn);
+									}
+								});
+							} else {
+								self.remove(txn, self.table);
+								self.emit('payment', txn);
+							}
 
 						}
 					});
@@ -73,40 +79,50 @@ function txnManager(logic) {
 
 	}
 	this.find = function(address) {
-		for (var i = 0; i < self.table; i++) {
+		var all = [];
+		for (var i = 0; i < self.table.length; i++) {
 			var element = self.table[i];
-			if (element.address == address) return element;
+
+			if (element.address == address) all.push(element);
 		}
-		return false;
+		return all;
+	}
+	this.add = function(txn) {
+		var array = self.table;
+		console.log('Adding!');
+		var found = false,
+			newly = true;
+		for (var i = 0; i < array.length; i++) {
+			if (array[i].txid == txn.txid) {
+				array.splice(i, 1);
+				newly = false;
+			}
+		}
+
+
+		array.push(txn);
+		return newly;
+	}
+	this.remove = function(txn) {
+		var array = self.table;
+		for (var i = 0; i < array.length; i++) {
+			if (array[i].txid == txn.txid) {
+				array.splice(i, 1);
+			}
+		}
 	}
 }
 
 function objectify(hash, confirms, amount, category, address, currency) {
-	var txn = [];
-	txn.txid = hash;
-	txn.confirmations = confirms;
-	txn.amount = amount;
-	txn.currency = currency
-	txn.category = category;
-	txn.address = address;
-	return txn;
-}
-
-function add(txn, array) {
-	var found = false,
-		newly = true;
-
-	if (array.indexOf(txn != -1)) {
-		array.splice(array.indexOf(found), 1);
-		newly = false
+	var txn = {
+		txid: hash,
+		confirmations: confirms,
+		amount: amount,
+		currency: currency,
+		category: category,
+		address: address
 	}
-
-	array.push(txn);
-	return newly;
-}
-
-function remove(txn, array) {
-	if (array.indexOf(txn != -1)) array.splice(array.indexOf(found), 1);
+	return txn;
 }
 
 function isset() {

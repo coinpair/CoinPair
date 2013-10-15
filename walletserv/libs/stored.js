@@ -1,12 +1,13 @@
 //the txn storage module!
 
 var fs = require('fs'),
+	mkdirp = require('mkdirp'),
 	config = require('../config.js');
 
 function stored() {
 	this.refresh = function(currency, callback) {
 		currency = currency.toLowerCase();
-		var dir = config.confirmations.dir + currency + '/' + currency + '/';
+		var dir = config.confirmations.dir + currency + '/';
 
 		process(dir, function(err, name, currency) {
 			if (err) callback(err);
@@ -23,20 +24,27 @@ function stored() {
 
 	this.unstore = function(hash, currency, callback) {
 		currency = currency.toLowerCase();
-		var dir = "./unconfirmed/" + currency;
+		var dir = "./unconfirmed/" + currency + '/' + hash + ".txt";
+		fs.exists(file, function(exists) {
+			if (exists) {
+				fs.unlink(dir + '/' + hash + ".txt", function(err) {
+					if (err) {
+						callback(err);
 
-		fs.unlink(dir + '/' + hash + ".txt", hash, function(err) {
-			if (err) {
-				callback(err);
+					} else {
 
+						callback(false);
+					}
+				});
 			} else {
-
 				callback(false);
 			}
 		});
+
 	}
 
 	this.store = function(hash, currency, callback) {
+		console.log('Storing ' + hash + ' for currency ' + currency);
 		var dir = "./unconfirmed/" + currency;
 
 		mkdirp(dir, function(err) {
@@ -55,13 +63,19 @@ function stored() {
 }
 
 function process(dir, callback) {
-	fs.readdir(dir, function(err, file) {
+	fs.readdir(dir, function(err, files) {
 		if (err) {
 			callback(err);
 		} else {
-			var str = file.substr(file.length - 4);
-			if (str == '.txt ') {
-				callback(false, file);
+			for (var i = 0; i < files.length; i++) {
+
+				var file = files[i];
+				var str = file.substr(file.length - 4);
+
+				if (str == '.txt') {
+
+					callback(false, file);
+				}
 			}
 		}
 	});

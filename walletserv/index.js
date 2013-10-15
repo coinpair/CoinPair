@@ -23,17 +23,13 @@ blocknotify = new blocknotify(config.ports.bnotify);
 
 txnManager = new txnManager(function(txn, callback) {
 	//transaction logic
-	if (txn.confirmations == 1) callback(false);
+	if (txn.confirmations == 0) callback(false);
 	else callback(true);
 });
 
 setTimeout(function() {
-	if (config.test) {
-		processTxn(testing.faketxn());
-		if (config.loadTest) {
-			loadtest();
-		}
-	}
+	//txnManager.block('btc');
+	//txnManager.update('9224da426e9b226181ab65d40919ac5fd3818b65ab1b41ea08a5060a2403076f', 'btc');
 }, 4000);
 
 var longest = 0;
@@ -70,6 +66,7 @@ function loadtest() {
 }
 
 txnManager.on('payment', function(txn) {
+	console.log('payment!');
 	processTxn(txn);
 	api.socketUpdate(txn.address, {
 		hash: txn.txid,
@@ -81,6 +78,7 @@ txnManager.on('queued', function(txn) {
 	api.socketUpdate(txn.address, txn, 'update');
 });
 txnManager.on('new', function(txn) {
+	console.log('Setting rate!');
 	setRate(txn);
 });
 txnManager.on('error', function(err) {
@@ -115,14 +113,15 @@ api.on('lookup', function(secureid, res) {
 		} else {
 			var pendingTxn = txnManager.find(result.input);
 
+
 			rate.rate(result.fromcurrency, result.tocurrency, function(err, rateVal) {
 				if (err) {
+					console.log('rate err: ' + err);
 					sendErr(res, 'internal error (server fault)');
 				} else {
 					database.txnbase.find(secureid, function(err2, results) {
-						if (err || err2) {
+						if (err2) {
 							sendErr(res, 'internal error (server fault)');
-							console.log('rate err: ' + err);
 							console.log('txn find err: ' + err2);
 						} else {
 							rate.fee(result.fromcurrency, function(err, fee) {
@@ -143,6 +142,7 @@ api.on('lookup', function(secureid, res) {
 										pending: pendingTxn,
 										history: results
 									});
+
 								}
 							});
 						}
@@ -202,7 +202,7 @@ api.on('track', function(id, res) {
 
 //dealing with rate requests
 api.on('rate', function(from, to, res) {
-	
+
 	if (from == to) {
 		rate.fee(from, function(err, fee) {
 			if (err) {
@@ -280,7 +280,7 @@ function generateAddresses(from, to, callback) {
 
 function setRate(txn) {
 	database.find(txn.address, function(err, result) {
-		rate.rate(txn.from, result.tocurrency, function(err, conversionRate) {
+		rate.rate(txn.currency, result.tocurrency, function(err, conversionRate) {
 			if (err) {
 				console.log('rate error: ' + err);
 				console.log('Couldnt rate lock ' + txn.txid);
@@ -299,30 +299,39 @@ function setRate(txn) {
 
 function processTxn(txn) {
 
-	var address, currency, fromCurrency;
+	var address, currency, toCurrency;
 
-	address = txn.toAddress;
-	currency = txn.to;
-	fromCurrency = txn.from;
-
-
-	rate.fee(fromCurrency, function(err, conversionRate) {
-		var original = txn.amount;
-		txn.amount = txn.amount - conversionRate * config.fee;
-		if (txn.amount > 0) {
-			processRow(txn, original);
-		} else {
-			console.log('Received small amount (below flat fee), txid: ' + txn.txid + ' amount: ' + original);
+	database.find(txn.address, function(err, result) {
+		if (err) {
+			console.log('Couldnt process ' + txn.txid + ' database err: ' + err);
+			return;
 		}
+		toCurrency = result.tocurrency;
+		address = result.receiver;
+		rate.fee(toCurrency, function(err, fee) {
+			if (err) {
+				console.log('Couldnt process ' + txn.txid + ', rate err: ' + err);
+				return;
+			}
+			var original = txn.amount;
+			txn.amount = txn.amount - fee;
+			if (txn.amount > 0) {
+				processRow(txn, original, result);
+			} else {
+				console.log('Received small amount (below flat fee), txid: ' + txn.txid + ' amount: ' + original);
+			}
+		});
 	});
 }
 
 
 
-function processRow(txn, original) {
+function processRow(txn, original, row) {
+	var toCurrency = row.tocurrency,
+		receiver = row.receiver;
 	database.ratebase.rate(txn.txid, function(err, found) {
 		if (err || !found) {
-			rate.rate(txn.from, txn.to, function(err, conversionRate) {
+			rate.rate(txn.currency, toCurrency, function(err, conversionRate) {
 				if (err) {
 					console.log('Exchange error: ' + err);
 					console.log('Couldnt process ' + txn.txid);
@@ -332,9 +341,16 @@ function processRow(txn, original) {
 
 					var sendAmount = txn.amount * conversionRate;
 
-					console.log('sending ' + sendAmount + ' ' + txn.to + ' to ' + txn.toAddress + ' after initial ' + original + ' ' + txn.from);
-					send(txn.to, txn.toAddress, sendAmount, function(err) {
+					console.log('sending ' + sendAmount + ' ' + toCurrency + ' to ' + receiver + ' after initial ' + original + ' ' + txn.currency);
+					send(toCurrency, receiver, sendAmount, function(err) {
 						if (err) failure(txn.txid, 'send fail, err: ' + err);
+						else {
+							//function(secureid, hash, amount, date, callback)
+							database.txnbase.create(row.secureid, txn.txid, txn.amount, new Date().toString('yyyy-MM-dd'), function(){
+								if(err)console.log('txnbase create err: ' + err);
+								console.log('Created record of txn');
+							});
+						}
 
 					});
 				}
