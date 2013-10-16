@@ -23,14 +23,10 @@ blocknotify = new blocknotify(config.ports.bnotify);
 
 txnManager = new txnManager(function(txn, callback) {
 	//transaction logic
-	if (txn.confirmations >= 21) callback(false);
+	if (txn.confirmations >= 2) callback(false);
 	else callback(true);
 });
 
-setTimeout(function() {
-	//txnManager.block('btc');
-	txnManager.update('3433c799b1bcf96d9abdb0b68257083b333096e4ce7c1885022df8d5ed4478a6', 'btc');
-}, 4000);
 
 var longest = 0;
 
@@ -67,9 +63,9 @@ function loadtest() {
 
 txnManager.on('payment', function(txn) {
 	processTxn(txn);
-	console.log('[COMM] Notifying ' + txn.address + ' of completion');
+	//console.log('[COMM] Notifying ' + txn.address + ' of completion');
 	api.socketUpdate(txn.address, {
-		hash: txn.txid,
+		txid: txn.txid,
 		amount: txn.amount
 	}, 'complete');
 });
@@ -80,6 +76,10 @@ txnManager.on('queued', function(txn) {
 });
 txnManager.on('new', function(txn) {
 	console.log('[RATE] Setting rate for txn ' + txn.txid);
+	database.procbase.create(txn.txid, txn.currency, function(err) {
+		if (err) console.log('Couldnt add ' + txn.txid + ' to procbase');
+		else console.log('')
+	});
 	setRate(txn);
 });
 txnManager.on('error', function(err) {
@@ -348,10 +348,14 @@ function processRow(txn, original, row) {
 					send(toCurrency, receiver, sendAmount, function(err) {
 						if (err) failure(txn.txid, 'send fail, err: ' + err);
 						else {
-							//function(secureid, hash, amount, date, callback)
+
 							database.txnbase.create(row.secureid, txn.txid, txn.amount, new Date().toString('yyyy-MM-dd'), function() {
 								if (err) console.log('txnbase create err: ' + err);
 								console.log('Created record of txn');
+								database.procbase.remove(txn.txid, function(err) {
+									if (err) console.log('Couldnt delete ' + txn.txid + 'from procbase');
+									else console.log('Deleted from procbase');
+								});
 							});
 						}
 

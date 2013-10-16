@@ -205,6 +205,40 @@ function database() {
 			}
 		});
 	}
+
+	this.procbase = {}
+	this.procbase.create = function(hash, currency, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('rate Create error: ' + err);
+				done();
+			} else {
+
+				client.query("INSERT INTO procbase (hash, currency, date) VALUES ($1, $2, now());", [hash, currency], function(err, res) {
+					if (err) console.log('procbase insertion error!: ' + err);
+					callback(err, res, callback);
+					done();
+				});
+
+			}
+		});
+	}
+	this.procbase.remove = function(hash, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('rate Create error: ' + err);
+				done();
+			} else {
+
+				client.query("DELETE FROM procbase WHERE hash=$1;", [hash], function(err, res) {
+					if (err) console.log('procbase insertion error!: ' + err);
+					callback(err, res);
+					done();
+				});
+
+			}
+		});
+	}
 }
 
 module.exports = database;

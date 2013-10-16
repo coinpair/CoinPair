@@ -4,8 +4,8 @@ var wallet = require('../libs/wallet.js'),
 	config = require('./../config.js');
 
 function address(type, callback) {
-	wallet = new wallet();
-	var client = wallet.find(type);
+	Wallet = new wallet();
+	var client = Wallet.find(type);
 	if (client) {
 		client.getNewAddress(function(err, address) {
 			if (err) {

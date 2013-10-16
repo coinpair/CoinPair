@@ -23,7 +23,15 @@ pg.connect(function(err, client, done) {
 								console.log('ubase create err: ' + err);
 							} else {
 								console.log('ratebase created!');
-								process.exit(code = 0);
+								client.query('CREATE TABLE IF NOT EXISTS procbase (hash varchar(65), currency varchar, date date);', function(err, response) {
+									if (err) {
+										console.log('ubase create err: ' + err);
+									} else {
+										console.log('procbase created');
+										process.exit(code = 0);
+									}
+								});
+								
 							}
 							//done();
 						});
