@@ -23,7 +23,7 @@ blocknotify = new blocknotify(config.ports.bnotify);
 
 txnManager = new txnManager(function(txn, callback) {
 	//transaction logic
-	if (txn.confirmations >= 2) callback(false);
+	if (txn.confirmations == 1) callback(false);
 	else callback(true);
 });
 
@@ -76,10 +76,6 @@ txnManager.on('queued', function(txn) {
 });
 txnManager.on('new', function(txn) {
 	console.log('[RATE] Setting rate for txn ' + txn.txid);
-	database.procbase.create(txn.txid, txn.currency, function(err) {
-		if (err) console.log('Couldnt add ' + txn.txid + ' to procbase');
-		else console.log('')
-	});
 	setRate(txn);
 });
 txnManager.on('error', function(err) {
@@ -88,6 +84,9 @@ txnManager.on('error', function(err) {
 
 walletnotify.on('notify', function(hash, type) {
 	console.log('[NOTIFICATION] received notify from wallet clients');
+	database.procbase.create(hash, type, function(err) {
+		if (err) console.log('Couldnt add ' + txn.txid + ' to procbase');
+	});
 	txnManager.update(hash, type);
 });
 
@@ -282,20 +281,24 @@ function generateAddresses(from, to, callback) {
 
 function setRate(txn) {
 	database.find(txn.address, function(err, result) {
-		rate.rate(txn.currency, result.tocurrency, function(err, conversionRate) {
-			if (err) {
-				console.log('rate error: ' + err);
-				console.log('Couldnt rate lock ' + txn.txid);
+		if (result) {
+			rate.rate(txn.currency, result.tocurrency, function(err, conversionRate) {
+				if (err) {
+					console.log('rate error: ' + err);
+					console.log('[CRITICAL] Couldnt rate lock ' + txn.txid);
 
-			} else {
-				database.ratebase.create(txn.txid, conversionRate, function(err) {
-					if (err) {
-						console.log("Couldnt rate lock " + txn.txid + ", got error: " + err);
-					}
+				} else {
+					database.ratebase.create(txn.txid, conversionRate, function(err) {
+						if (err) {
+							console.log("[CRITICAL] Couldnt rate lock " + txn.txid + ", got error: " + err);
+						}
 
-				});
-			}
-		});
+					});
+				}
+			});
+		} else {
+			console.log('[WARN] Not stored (pair not found in db)');
+		}
 	});
 }
 
@@ -346,15 +349,15 @@ function processRow(txn, original, row) {
 
 					console.log('sending ' + sendAmount + ' ' + toCurrency + ' to ' + receiver + ' after initial ' + original + ' ' + txn.currency);
 					send(toCurrency, receiver, sendAmount, function(err) {
-						if (err) failure(txn.txid, 'send fail, err: ' + err);
+						if (err) console.log('send fail, err: ' + err);
 						else {
-
-							database.txnbase.create(row.secureid, txn.txid, txn.amount, new Date().toString('yyyy-MM-dd'), function() {
+							console.log('Muh databases!');
+							database.txnbase.create(row.secureid, txn.txid, txn.amount, function() {
 								if (err) console.log('txnbase create err: ' + err);
 								console.log('Created record of txn');
-								database.procbase.remove(txn.txid, function(err) {
-									if (err) console.log('Couldnt delete ' + txn.txid + 'from procbase');
-									else console.log('Deleted from procbase');
+								database.procbase.remove(txn.txid, function(err, res) {
+									if (err && res.rowCount == 0) console.log('Couldnt delete ' + txn.txid + 'from procbase');
+									
 								});
 							});
 						}
@@ -369,7 +372,19 @@ function processRow(txn, original, row) {
 			console.log('sending ' + sendAmount + ' ' + txn.currency + ' to ' + row.receiver + ' after initial ' + original + ' ' + txn.currency);
 			send(txn.currency, row.receiver, sendAmount, function(err) {
 				if (err) failure(txn.txid, 'send fail, err: ' + err);
+				else {
+					database.txnbase.create(row.secureid, txn.txid, txn.amount, function() {
+						if (err) console.log('txnbase create err: ' + err);
+						console.log('Created record of txn');
+						database.procbase.remove(txn.txid, function(err, res) {
+							if (err && res.rowCount == 0) console.log('Couldnt delete ' + txn.txid + 'from procbase');
+							
+						});
+					});
+				}
 			});
+
+
 			database.ratebase.remove(txn.txid);
 		}
 	});

@@ -46,7 +46,7 @@ function stored() {
 	}
 
 	this.store = function(hash, currency, callback) {
-		console.log('Storing ' + hash + ' for currency ' + currency);
+		console.log('[TXTSTORE] Storing ' + hash + ' for currency ' + currency);
 		var dir = "./unconfirmed/" + currency;
 
 		mkdirp(dir, function(err) {

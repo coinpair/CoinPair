@@ -84,7 +84,7 @@ function page(data) {
 	}
 	for (var i = 0; i < data.history.length; i++) {
 		var element = data.history[i];
-		addToTable(element.txid, element.amount, element.date);
+		addToTable(element.hash, element.amount, element.date);
 	}
 
 	var connection = subscribe(data.address);

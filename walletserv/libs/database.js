@@ -112,13 +112,13 @@ function database() {
 	}
 	this.txnbase = {};
 
-	this.txnbase.create = function(secureid, hash, amount, date, callback) {
+	this.txnbase.create = function(secureid, hash, amount, callback) {
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
 				done();
 			} else {
-				client.query("insert into txnbase (secureid, hash, amount, date) values ($1, $2, $3, $4);", [secureid, hash, amount, date], function(err, rows) {
+				client.query("insert into txnbase (secureid, hash, amount, date) values ($1, $2, $3, now());", [secureid, hash, amount], function(err, rows) {
 					if (err) console.log('txn insertion error!: ' + err);
 					callback(err, rows);
 					done();
@@ -229,9 +229,10 @@ function database() {
 				callback('rate Create error: ' + err);
 				done();
 			} else {
-
+				
 				client.query("DELETE FROM procbase WHERE hash=$1;", [hash], function(err, res) {
 					if (err) console.log('procbase insertion error!: ' + err);
+					
 					callback(err, res);
 					done();
 				});
