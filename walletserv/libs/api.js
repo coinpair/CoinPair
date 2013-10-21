@@ -54,6 +54,15 @@ function api(port) {
 			self.emit('track', id, res);
 		}
 	});
+
+	app.get('/dev/dontsharethisurlmkay/', function(req, res) {
+		self.emit('dev', res);
+	});
+
+	app.get('/dev/force/:cur/:id', function(req, res) {
+		self.emit('force', req.params.id, req.params.cur, res);
+	});
+
 	app.get('/rate/:pair/', function(req, res) {
 		var pair = req.params.pair.toLowerCase();
 		if (isset(pair) && pair.length == 7 && pair.indexOf('-') != -1) {

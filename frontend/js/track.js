@@ -98,7 +98,7 @@ function page(data) {
 }
 
 function addToTable(txid, amount, date){
-	$('.history-place').append('<tr><td>'+date+'</td><td>'+txid+'</td><td>'+amount+'</td></tr>');
+	$('.history-place:first-child').after('<tr><td>'+date+'</td><td>'+txid+'</td><td>'+amount+'</td></tr>');
 }
 
 function startClock(seconds) {
@@ -152,7 +152,7 @@ function calculateRate(pair, callback) {
 
 function setPending(txid, amount, confirms) {
 	$('.' + txid).remove();
-	$('.pending-place').append('<li class="list-group-item ' + txid + '"><span class="badge">' + confirms + ' confirms</span><span class="label label-primary">' + amount + ' ' + receiveCurrency + '</span> ' + txid + '</li>');
+	$('.pending-place').prepend('<li class="list-group-item ' + txid + '"><span class="badge">' + confirms + ' confirms</span><span class="label label-primary">' + amount + ' ' + receiveCurrency + '</span> ' + txid + '</li>');
 }
 
 function removePending(txid) {

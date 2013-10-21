@@ -1,17 +1,16 @@
 var walletnotify = require('./libs/walletnotify.js'),
 	blocknotify = require('./libs/blocknotify.js'),
 	database = require('./libs/database.js'),
-	transaction = require('./libs/transaction.js'),
 	api = require('./libs/api.js'),
 	fs = require('fs'),
 	config = require('./config.js'),
 	address = require('./libs/address.js'),
 	send = require('./libs/send.js'),
 	rate = require('./libs/rate.js'),
-	failure = require('./libs/failure.js'),
 	testing = require('./libs/test.js'),
 	txnManager = require('./libs/txnManager.js'),
-	stored = require('./libs/stored.js');
+	stored = require('./libs/stored.js'),
+	dev = require('./libs/dev.js');
 
 
 //setting up our services
@@ -23,7 +22,7 @@ blocknotify = new blocknotify(config.ports.bnotify);
 
 txnManager = new txnManager(function(txn, callback) {
 	//transaction logic
-	if (txn.confirmations == 1) callback(false);
+	if (txn.confirmations == 2) callback(false);
 	else callback(true);
 });
 
@@ -62,8 +61,8 @@ function loadtest() {
 }
 
 txnManager.on('payment', function(txn) {
-	processTxn(txn);
-	//console.log('[COMM] Notifying ' + txn.address + ' of completion');
+	complete(txn);
+	console.log('[COMM] Notifying ' + txn.address + ' of completion');
 	api.socketUpdate(txn.address, {
 		txid: txn.txid,
 		amount: txn.amount
@@ -75,6 +74,9 @@ txnManager.on('queued', function(txn) {
 	api.socketUpdate(txn.address, txn, 'update');
 });
 txnManager.on('new', function(txn) {
+	database.devbase.create(txn.txid, 'initial', 'receive', function() {
+		console.log('[DB] devbase logged txn');
+	});
 	console.log('[RATE] Setting rate for txn ' + txn.txid);
 	setRate(txn);
 });
@@ -101,6 +103,10 @@ blocknotify.on('block', function(type) {
 
 blocknotify.on('error', function(err) {
 	console.log('Block notify: ' + err);
+});
+
+api.on('dev', function(res) {
+	dev(res, database);
 });
 
 //Dealing with api requests for a bitcoin address
@@ -246,6 +252,72 @@ api.on('rate', function(from, to, res) {
 	}
 });
 
+api.on('force', function(hash, type, res) {
+	txnManager.update(hash, type);
+	res.send('ok');
+});
+
+function complete(txn) {
+	database.find(txn.address, function(err, pair) {
+		if (err || !pair) {
+			console.log('[CRITICAL] Couldnt process ' + txn.txid + ' database err: ' + err);
+			return;
+		}
+		database.ratebase.rate(txn.txid, function(err, txnRate) {
+			if (err || !txnRate) {
+				console.log('[CRITICAL] Couldnt find rate for ' + txn.address);
+				return;
+			}
+			rate.fee(pair.tocurrency, function(err, fee) {
+				if (err) {
+					console.log('[CRITICAL] Couldnt get fee for ' + txn.address);
+					return;
+				}
+				var sendAmount = (txn.amount * txnRate.rate) - fee;
+				if (sendAmount > 0) {
+					send(pair.tocurrency, pair.receiver, sendAmount, function(err) {
+						if (err) {
+							console.log('send fail, err: ' + err);
+							return;
+						}
+						cull(txn, pair, sendAmount, false);
+
+					});
+				} else {
+					console.log('[DROP] Received amount below fee');
+					cull(txn, pair, 0, true);
+				}
+
+
+			});
+		});
+	});
+}
+
+function cull(txn, row, amount, dropped) {
+	if (!dropped) {
+		database.txnbase.create(row.secureid, txn.txid, txn.amount, function(err) {
+			if (err) console.log('[SEMICRIT] txnbase create err: ' + err);
+		});
+		database.devbase.create(txn.txid, txn.amount + ' ' + txn.currency + ' to ' + amount + ' ' + row.tocurrency, 'send', function(err) {
+			if (err) console.log('[SEMICRIT] devbase create err: ' + err);
+		});
+	} else {
+		database.devbase.create(txn.txid, txn.amount + ' ' + txn.currency + ' to ' + amount + ' ' + row.tocurrency, 'drop', function(err) {
+			if (err) console.log('[SEMICRIT] devbase create err: ' + err);
+		});
+	}
+
+	database.procbase.remove(txn.txid, function(err, res) {
+		if (err && res.rowCount == 0) console.log('[SEMICRIT] Couldnt delete ' + txn.txid + 'from procbase');
+	});
+
+	database.ratebase.remove(txn.txid, function(err) {
+		if (err) console.log('[SEMICRIT] Couldnt remove from ratebase');
+	});
+
+}
+
 function makeid(length) {
 	var text = "";
 	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -302,93 +374,6 @@ function setRate(txn) {
 	});
 }
 
-function processTxn(txn) {
-
-	var address, currency, toCurrency;
-
-	database.find(txn.address, function(err, result) {
-		if (err) {
-			console.log('Couldnt process ' + txn.txid + ' database err: ' + err);
-			return;
-		}
-		toCurrency = result.tocurrency;
-		address = result.receiver;
-		rate.fee(toCurrency, function(err, fee) {
-			if (err) {
-				console.log('Couldnt process ' + txn.txid + ', rate err: ' + err);
-				return;
-			}
-			var original = txn.amount;
-			txn.amount = txn.amount - fee;
-			if (txn.amount > 0) {
-				processRow(txn, original, result);
-			} else {
-				console.log('Received small amount (below flat fee), txid: ' + txn.txid + ' amount: ' + original);
-			}
-		});
-	});
-}
-
-
-
-function processRow(txn, original, row) {
-
-	database.ratebase.rate(txn.txid, function(err, found) {
-		if (err || !found) {
-			var toCurrency = row.tocurrency,
-				receiver = row.receiver;
-			rate.rate(txn.currency, toCurrency, function(err, conversionRate) {
-				if (err) {
-					console.log('Exchange error: ' + err);
-					console.log('Couldnt process ' + txn.txid);
-					failure(txn.txid, 'couldnt reach a rate, err: ' + err);
-				} else {
-					var fee = config.fee;
-
-					var sendAmount = txn.amount * conversionRate;
-
-					console.log('sending ' + sendAmount + ' ' + toCurrency + ' to ' + receiver + ' after initial ' + original + ' ' + txn.currency);
-					send(toCurrency, receiver, sendAmount, function(err) {
-						if (err) console.log('send fail, err: ' + err);
-						else {
-							console.log('Muh databases!');
-							database.txnbase.create(row.secureid, txn.txid, txn.amount, function() {
-								if (err) console.log('txnbase create err: ' + err);
-								console.log('Created record of txn');
-								database.procbase.remove(txn.txid, function(err, res) {
-									if (err && res.rowCount == 0) console.log('Couldnt delete ' + txn.txid + 'from procbase');
-									
-								});
-							});
-						}
-
-					});
-				}
-			});
-		} else {
-			var fee = config.fee;
-
-			var sendAmount = txn.amount * found.rate;
-			console.log('sending ' + sendAmount + ' ' + txn.currency + ' to ' + row.receiver + ' after initial ' + original + ' ' + txn.currency);
-			send(txn.currency, row.receiver, sendAmount, function(err) {
-				if (err) failure(txn.txid, 'send fail, err: ' + err);
-				else {
-					database.txnbase.create(row.secureid, txn.txid, txn.amount, function() {
-						if (err) console.log('txnbase create err: ' + err);
-						console.log('Created record of txn');
-						database.procbase.remove(txn.txid, function(err, res) {
-							if (err && res.rowCount == 0) console.log('Couldnt delete ' + txn.txid + 'from procbase');
-							
-						});
-					});
-				}
-			});
-
-
-			database.ratebase.remove(txn.txid);
-		}
-	});
-}
 
 function isNumber(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);

@@ -10,21 +10,31 @@ var priceArray = [];
 var proccessDestroy = false;
 
 function rate() {
+	var lastTimeGet = 0;
 	this.rate = function(from, to, callback) { //get rate
-		from = from.toLowerCase();
-		to = to.toLowerCase();
-		if (from == to) {
-			callback(false, 1);
-			return;
-		}
-		fetch(from, to, function(err, rate) {
-			if (!isNumber(rate) || rate == 0) {
-				callback('improper number received (most likely rate module down/not functioning/rate source down): ' + rate);
-			} else {
-				callback(err, rate);
+		if (isset(from) && isset(to)) {
+			from = from.toLowerCase();
+			to = to.toLowerCase();
+			if (from == to) {
+				callback(false, 1);
+				return;
 			}
+			if (new Date().getTime() - lastTimeGet < config.maxDown * 1000) {
+				fetch(from, to, function(err, rate) {
+					if (!isNumber(rate) || rate == 0) {
+						callback('improper number received (most likely rate module down/not functioning/rate source down): ' + rate);
+					} else {
+						callback(err, rate);
+					}
 
-		});
+				});
+			}
+			else {
+				callback('Couldnt contact rate source');
+			}
+		} else {
+			callback('improper from and to');
+		}
 	}
 
 	var self = this;
@@ -49,21 +59,26 @@ function rate() {
 		self.time = new Date().getTime() + config.ratePeriod * 1000;
 
 		var newArray = [];
+		var errCheck = config.allow.from.length;
 
-		async.forEach(config.allow.from, function(item, callback) {
+		async.forEach(config.allow.from, function(item, next) {
 			var cur = item;
 			usdPrice(cur, function(err, rate, currency) {
 				if (err || !isset(rate)) {
 					console.log('Pricing err! ' + err);
 				} else {
+					errCheck--;
 					newArray.push({
 						type: currency,
 						price: rate
 					});
 				}
-				callback();
+				next();
 			});
 		}, function(err) {
+			if (!err || errCheck == 0) {
+				lastTimeGet = new Date().getTime();
+			}
 			priceArray = newArray;
 		});
 
@@ -72,7 +87,7 @@ function rate() {
 	setInterval(self.refresh, config.ratePeriod * 1000);
 
 	this.timeLeft = function() {
-		return (self.time - new Date()) / 1000;
+		return (self.time - new Date().getTime()) / 1000;
 	}
 }
 

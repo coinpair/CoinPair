@@ -119,7 +119,6 @@ function database() {
 				done();
 			} else {
 				client.query("insert into txnbase (secureid, hash, amount, date) values ($1, $2, $3, now());", [secureid, hash, amount], function(err, rows) {
-					if (err) console.log('txn insertion error!: ' + err);
 					callback(err, rows);
 					done();
 				});
@@ -158,12 +157,11 @@ function database() {
 
 		connect(function(err, done, client) {
 			if (err) {
-				callback('rate Create error: ' + err);
+				callback('connect error: ' + err);
 				done();
 			} else {
 
 				client.query("INSERT INTO ratebase (hash, rate, date) SELECT '" + hash + "', " + rate + ", now() WHERE NOT EXISTS (SELECT 1 FROM ratebase WHERE hash='" + hash + "');", function(err, res) {
-					if (err) console.log('rate insertion error!: ' + err);
 					callback(err, res);
 					done();
 				});
@@ -175,13 +173,12 @@ function database() {
 
 		connect(function(err, done, client) {
 			if (err) {
-				console.log('rate remove of ' + hash + ' error: ' + err);
-				if (typeof callback !== 'undefined') callback(err);
+				callback(err);
 				done();
 			} else {
 				client.query("delete from ratebase where hash=$1;", [hash], function(err, rows) {
-					if (err) console.log('rate deletion error!: ' + err);
-					if (typeof callback !== 'undefined') callback(err, rows);
+					
+					callback(err, rows);
 					done();
 				});
 			}
@@ -190,7 +187,7 @@ function database() {
 	this.ratebase.rate = function(hash, callback) {
 		connect(function(err, done, client) {
 			if (err) {
-				callback('rate Create error: ' + err);
+				callback('connect error: ' + err);
 				done();
 			} else {
 				client.query("select * from ratebase where hash=$1;", [hash], function(err, rows) {
@@ -210,13 +207,13 @@ function database() {
 	this.procbase.create = function(hash, currency, callback) {
 		connect(function(err, done, client) {
 			if (err) {
-				callback('rate Create error: ' + err);
+				callback('connect error: ' + err);
 				done();
 			} else {
 
 				client.query("INSERT INTO procbase (hash, currency, date) VALUES ($1, $2, now());", [hash, currency], function(err, res) {
-					if (err) console.log('procbase insertion error!: ' + err);
-					callback(err, res, callback);
+					
+					callback(err, res);
 					done();
 				});
 
@@ -226,13 +223,43 @@ function database() {
 	this.procbase.remove = function(hash, callback) {
 		connect(function(err, done, client) {
 			if (err) {
-				callback('rate Create error: ' + err);
+				callback('connect error: ' + err);
 				done();
 			} else {
-				
+
 				client.query("DELETE FROM procbase WHERE hash=$1;", [hash], function(err, res) {
-					if (err) console.log('procbase insertion error!: ' + err);
-					
+					callback(err, res);
+					done();
+				});
+
+			}
+		});
+	}
+
+	this.devbase = {}
+	this.devbase.create = function(hash, conversion, type, callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('devbase connect error: ' + err);
+				done();
+			} else {
+
+				client.query("INSERT INTO devbase (hash, conversion, type, date) VALUES ($1, $2, $3, now());", [hash, conversion, type], function(err, res) {
+					callback(err, res);
+					done();
+				});
+
+			}
+		});
+	}
+	this.devbase.list = function(callback) {
+		connect(function(err, done, client) {
+			if (err) {
+				callback('connect error: ' + err);
+				done();
+			} else {
+
+				client.query("select * from devbase;", function(err, res) {
 					callback(err, res);
 					done();
 				});

@@ -31,12 +31,8 @@
 }
 .jumbotron-frontpage {
 	
-	background-image: url(../img/bg2.jpg);
-	background-repeat: no-repeat;
-	-webkit-background-size: cover;
-	-moz-background-size: cover;
-	-o-background-size: cover;
-	background-size: cover;
+	background-image: url(../img/shattered_@2X.png);
+	background-repeat: repeat;
 	color:white;
 	/*
 	color:white;
