@@ -87,7 +87,7 @@ txnManager.on('error', function(err) {
 walletnotify.on('notify', function(hash, type) {
 	console.log('[NOTIFICATION] received notify from wallet clients');
 	database.procbase.create(hash, type, function(err) {
-		if (err) console.log('Couldnt add ' + txn.txid + ' to procbase');
+		if (err) console.log('Couldnt add ' + hash + ' to procbase');
 	});
 	txnManager.update(hash, type);
 });
