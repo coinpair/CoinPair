@@ -273,7 +273,7 @@ function complete(txn) {
 					console.log('[CRITICAL] Couldnt get fee for ' + txn.address);
 					return;
 				}
-				var sendAmount = Math.ceil((txn.amount * txnRate.rate - fee) * 100000000 / 100000000);
+				var sendAmount = Math.ceil((txn.amount * txnRate.rate - fee) * 100000000) / 100000000;
 				if (sendAmount > 0) {
 					send(pair.tocurrency, pair.receiver, sendAmount, function(err) {
 						if (err) {
