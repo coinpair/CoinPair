@@ -44,7 +44,7 @@ $('.to-receive').keyup(function() {
 		toReceive = Number($(".to-receive").val());
 		if ($(".to-receive").val().length > 0) {
 			var amount = parseFloat(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee).toFixed(8);
-			$('.rate-place').html(amount);
+			$('.rate-place').html(amount.replace(/0*$/, ''));
 		}
 	}
 });
@@ -69,7 +69,7 @@ function page(data) {
 	fee = data.fee;
 
 	var amount = parseFloat(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee).toFixed(8);
-	$('.rate-place').html(amount);
+	$('.rate-place').html(amount.replace(/0*$/, ''));
 	receiveCurrency = data.from;
 	currencyPair = data.from + '-' + data.to;
 
@@ -98,7 +98,7 @@ function page(data) {
 }
 
 function addToTable(txid, amount, date){
-	$('.history-place:first-child').after('<tr><td>'+date+'</td><td>'+txid+'</td><td>'+amount+'</td></tr>');
+	$('.history-place tbody:nth-child(1)').append('<tr><td>'+date+'</td><td>'+txid+'</td><td>'+amount+'</td></tr>');
 }
 
 function startClock(seconds) {
@@ -111,7 +111,7 @@ function startClock(seconds) {
 				exRate = rate.rate; //wow, descriptive line
 				fee = rate.fee;
 				var amount = parseFloat(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee).toFixed(8);
-				$('.rate-place').html(amount);
+				$('.rate-place').html(amount.replace(/0*$/, ''));
 
 				var time = new Date().getTime() / 1000 + rate.timeTo;
 				startClock(time);
