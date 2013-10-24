@@ -297,7 +297,7 @@ function complete(txn) {
 function cull(txn, row, amount, dropped) {
 	if (!row) {
 		row = {
-			row.tocurrency: 'unset'
+			tocurrency: 'unset'
 		}
 	}
 	if (!dropped) {
