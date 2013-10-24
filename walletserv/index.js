@@ -295,6 +295,11 @@ function complete(txn) {
 }
 
 function cull(txn, row, amount, dropped) {
+	if (!row) {
+		row = {
+			row.tocurrency: 'unset'
+		}
+	}
 	if (!dropped) {
 		database.txnbase.create(row.secureid, txn.txid, txn.amount, function(err) {
 			if (err) console.log('[SEMICRIT] txnbase create err: ' + err);
@@ -309,7 +314,7 @@ function cull(txn, row, amount, dropped) {
 	}
 
 	database.procbase.remove(txn.txid, function(err, res) {
-		if (err && res.rowCount == 0) console.log('[SEMICRIT] Couldnt delete ' + txn.txid + 'from procbase');
+		if (err || res.rowCount == 0) console.log('[SEMICRIT] Couldnt delete ' + txn.txid + 'from procbase');
 	});
 
 	database.ratebase.remove(txn.txid, function(err) {
@@ -369,6 +374,7 @@ function setRate(txn) {
 				}
 			});
 		} else {
+			cull(txn, false, txn.amount, true);
 			console.log('[WARN] Not stored (pair not found in db)');
 		}
 	});
