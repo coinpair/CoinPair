@@ -89,6 +89,7 @@ function page(data) {
 
 	var connection = subscribe(data.address);
 	connection.on('update', function(data) {
+		console.log(data);
 		setPending(data.txid, data.amount, data.confirmations);
 	});
 	connection.on('complete', function(data) {

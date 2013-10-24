@@ -151,6 +151,7 @@ function database() {
 			}
 		});
 	}
+
 	this.ratebase = {};
 
 	this.ratebase.create = function(hash, rate, callback) {
@@ -177,7 +178,7 @@ function database() {
 				done();
 			} else {
 				client.query("delete from ratebase where hash=$1;", [hash], function(err, rows) {
-					
+
 					callback(err, rows);
 					done();
 				});
@@ -212,7 +213,7 @@ function database() {
 			} else {
 
 				client.query("INSERT INTO procbase (hash, currency, date) VALUES ($1, $2, now());", [hash, currency], function(err, res) {
-					
+
 					callback(err, res);
 					done();
 				});

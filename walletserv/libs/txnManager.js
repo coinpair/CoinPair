@@ -17,7 +17,7 @@ function txnManager(logic) {
 	this.block = function(currency) {
 
 		stored.refresh(currency, function(err, hash) {
-			if(config.test)console.log('[STOREDTXT] processing stored: ' + hash);
+			if (config.test) console.log('[STOREDTXT] processing stored: ' + hash);
 			if (err) {
 				self.emit('error', err);
 			} else {
@@ -29,7 +29,7 @@ function txnManager(logic) {
 	this.update = function(hash, currency) {
 		if (config.test) {
 			testReply.on('data', function(data) {
-				if(config.test)console.log('[TEST] confirms: ' + data.confirmations);
+				if (config.test) console.log('[TEST] confirms: ' + data.confirmations);
 				self.process(hash, currency, data, false);
 			});
 		} else {
@@ -63,11 +63,11 @@ function txnManager(logic) {
 				newly = false;
 			}
 		}
-		
+
 
 		array.push(txn);
 
-		if(config.test)console.log(array);
+		if (config.test) console.log(array);
 		return newly;
 	}
 	this.remove = function(txn) {
@@ -77,7 +77,7 @@ function txnManager(logic) {
 				array.splice(i, 1);
 			}
 		}
-		if(config.test)console.log(array);
+		if (config.test) console.log(array);
 	}
 
 	this.process = function(hash, currency, data, err) {
@@ -97,8 +97,12 @@ function txnManager(logic) {
 
 		if (txn.category == 'receive') {
 
-			logic(txn, function(wait) {
-				if (wait) {
+			logic(txn, function(wait, sanitize) {
+				if (sanitize) {
+					stored.unstore(txn.txid, txn.currency, function(err) {
+						console.log('[DROP] Txn culled, went stale');
+					});
+				} else if (wait) {
 					if (self.add(txn, self.table)) self.emit('new', txn);
 					self.emit('queued', txn);
 					if (txn.confirmations >= 1) {
