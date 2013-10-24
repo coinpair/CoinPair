@@ -23,7 +23,7 @@ blocknotify = new blocknotify(config.ports.bnotify);
 txnManager = new txnManager(function(txn, callback) {
 	//transaction logic
 	if (txn.confirmations == 1) callback(false, false);
-	else if (confirmations >= config.confirmations.cull) callback(true, true);
+	else if (txn.confirmations >= config.confirmations.cull) callback(true, true);
 	else callback(true, false);
 });
 
