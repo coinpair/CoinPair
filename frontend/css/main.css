@@ -1,3 +1,6 @@
+html,body{
+    height: 100% !important;
+}
 
 :invalid {
   border-color:red;
@@ -61,6 +64,9 @@
 .upopulated {
 	display:none;
 }
+.nocode {
+	display:none;
+}
 .qr-place img {
 	width:100%;
 }
@@ -97,4 +103,8 @@ footer {
 		margin:0px;
 		max-width:300px;
 	}
+}
+
+.secureid {
+	margin-bottom:10px;
 }

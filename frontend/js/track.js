@@ -9,7 +9,7 @@ $(document).ajaxError(function() {
 
 var pageID;
 $(document).ready(function() {
-	spinner();
+	
 	var prmstr = window.location.search.substr(1);
 	var prmarr = prmstr.split("&");
 	var params = {};
@@ -19,6 +19,7 @@ $(document).ready(function() {
 		params[tmparr[0]] = tmparr[1];
 	}
 	if (isset(params['id']) && params['id'].length > 0) {
+		spinner();
 		pageID = params['id'];
 		lookup(params['id'], function(err, data) {
 			if (err) {
@@ -34,6 +35,13 @@ $(document).ready(function() {
 				}
 			}
 		});
+	} else {
+		$('.nocode').show();
+		$('.submitid-btn').click(function(){
+			if($('.submitid').val().length > 0){
+				window.location.href="track.html?id=" + $('.submitid').val();
+			}
+		});
 	}
 
 });
@@ -43,7 +51,7 @@ $('.to-receive').keyup(function() {
 	if (isNumber($(".to-receive").val())) {
 		toReceive = Number($(".to-receive").val());
 		if ($(".to-receive").val().length > 0) {
-			var amount = parseFloat(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee).toFixed(8);
+			var amount = parseFloat(Math.ceil(toReceive / exRate * 100000000) / 100000000 + fee).toFixed(8);
 			$('.rate-place').html(amount.replace(/0*$/, ''));
 		}
 	}
@@ -68,7 +76,7 @@ function page(data) {
 	exRate = data.rate;
 	fee = data.fee;
 
-	var amount = parseFloat(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee).toFixed(8);
+	var amount = parseFloat(Math.ceil(toReceive / exRate * 100000000) / 100000000 + fee).toFixed(8);
 	$('.rate-place').html(amount.replace(/0*$/, ''));
 	receiveCurrency = data.from;
 	currencyPair = data.from + '-' + data.to;
@@ -98,8 +106,8 @@ function page(data) {
 	});
 }
 
-function addToTable(txid, amount, date){
-	$('.history-place tbody:nth-child(1)').append('<tr><td>'+date+'</td><td>'+txid+'</td><td>'+amount+'</td></tr>');
+function addToTable(txid, amount, date) {
+	$('.history-place tbody:nth-child(1)').append('<tr><td>' + date + '</td><td>' + txid + '</td><td>' + amount + '</td></tr>');
 }
 
 function startClock(seconds) {
@@ -111,7 +119,7 @@ function startClock(seconds) {
 			if (!err) {
 				exRate = rate.rate; //wow, descriptive line
 				fee = rate.fee;
-				var amount = parseFloat(Math.ceil(toReceive/exRate * 100000000)/100000000 + fee).toFixed(8);
+				var amount = parseFloat(Math.ceil(toReceive / exRate * 100000000) / 100000000 + fee).toFixed(8);
 				$('.rate-place').html(amount.replace(/0*$/, ''));
 
 				var time = new Date().getTime() / 1000 + rate.timeTo;
@@ -123,13 +131,12 @@ function startClock(seconds) {
 
 function clock(seconds, effect, callback) {
 	var diff = Math.ceil(seconds - (new Date().getTime() / 1000));
-	if(diff > 0){
+	if (diff > 0) {
 		effect(diff);
 		setTimeout(function() {
 			clock(seconds, effect, callback);
 		}, 995);
-	}
-	else {
+	} else {
 		callback();
 	}
 }

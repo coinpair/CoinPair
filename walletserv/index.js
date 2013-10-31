@@ -115,8 +115,8 @@ api.on('lookup', function(secureid, res) {
 		if (err) {
 			sendErr(res, 'internal error (server fault)');
 			console.log('DB lookup err: ' + err);
-		} else if (!address) {
-			sendErr(res, 'couldnt fine address')
+		} else if (!address || result.rowCount == 0) {
+			sendErr(res, 'couldnt find address')
 		} else {
 			var pendingTxn = txnManager.find(result.input);
 
