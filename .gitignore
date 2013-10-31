@@ -4,5 +4,6 @@ notify.exe
 node_modules
 unconfirmed
 failed-txn.txt
+failed-err.txt
 config.js
 error.txt

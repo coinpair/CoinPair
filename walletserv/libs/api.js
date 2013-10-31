@@ -80,7 +80,7 @@ function api(port) {
 		var secureid = req.params.id;
 		if (secureid.length != 20) {
 			res.jsonp({
-				failed: "improper length"
+				error: "improper length"
 			});
 		} else {
 			self.emit('lookup', secureid, res);
