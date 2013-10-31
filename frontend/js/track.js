@@ -24,11 +24,11 @@ $(document).ready(function() {
 		lookup(params['id'], function(err, data) {
 			if (err) {
 				hideSpinner();
-				$('body').append('<div class="well"><h1>We could not find any addresses</h1>The id in the url may be mistyped, it may not exist, or your connection to the server is not complete.</div>');
+				$('.container').prepend('<div class="well error"><h1>We could not find any addresses</h1>The id in the url may be mistyped, it may not exist, or your connection to the server is not complete.</div>');
 			} else {
 				hideSpinner();
-				if (isset(data.failed)) {
-					$('body').append('<div class="row"><div class="well"><h1>We could not find any addresses</h1>The id in the url may be mistyped, it may not exist. The server gave this reason: ' + data.failed + '</div></div>');
+				if (isset(data.error)) {
+					$('.container').prepend('<div class="row error"><div class="well"><h1>We could not find any addresses</h1>The id in the url may be mistyped, it may not exist. The server gave this reason: ' + data.error + '</div></div>');
 				} else {
 
 					page(data);

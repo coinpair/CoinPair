@@ -60,7 +60,9 @@ html,body{
   text-decoration: inherit; /* no underline */
 
 }
-
+.error {
+	margin-top:10px;
+}
 .upopulated {
 	display:none;
 }
