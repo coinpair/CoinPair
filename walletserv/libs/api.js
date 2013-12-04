@@ -5,7 +5,9 @@ var app = require('express')(),
 	config = require('./../config.js'),
 	addy = require('bitcoin-address'),
 	server = require('http').createServer(app),
-	io = require('socket.io').listen(server);;
+	io = require('socket.io').listen(server),
+	winston = require('winston');
+
 
 io.set('log level', 1);
 
@@ -89,19 +91,17 @@ function api(port) {
 
 	io.sockets.on('connection', function(socket) {
 		socket.on('subscribe', function(room) {
-			console.log('joining room', room);
+			winston.log('socket', 'joining room ' + room);
 			socket.join(room);
-
-			io.sockets. in (room + 'facs').emit('update', 'jel');
 		})
 
 		socket.on('unsubscribe', function(room) {
-			console.log('leaving room', room);
+			winston.log('socket', 'leaving room ' + room);
 			socket.leave(room);
 		})
 
 		socket.on('send', function(data) {
-			console.log('sending message');
+			winston.log('socket', 'sending message');
 			io.sockets. in (data.room).emit('message', data);
 		});
 	});

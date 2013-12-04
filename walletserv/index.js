@@ -10,8 +10,20 @@ var walletnotify = require('./libs/walletnotify.js'),
 	testing = require('./libs/test.js'),
 	txnManager = require('./libs/txnManager.js'),
 	stored = require('./libs/stored.js'),
-	dev = require('./libs/dev.js');
+	dev = require('./libs/dev.js'),
+	winston = require('winston');
 
+winston = new(winston.Logger)({
+	levels: config.logLevels.levels,
+	colors: config.logLevels.colors,
+	transports: [new winston.transports.Console({
+			colorize: 'true'
+		}),
+		new(winston.transports.File)({
+			filename: config.logfile
+		})
+	]
+});
 
 //setting up our services
 rate = new rate();
@@ -41,19 +53,20 @@ function loadtest() {
 	generateAddresses(from, to, function(err, inputAddy) {
 		if (err) {
 			sendErr(res, 'internal error (server fault)');
-			console.log('Generate address err: ' + err);
+			winston.log('error', 'Generate address err: ' + err);
+
 		} else {
 			var id = makeid(20);
 			createRow(inputAddy, rec, from, to, id, function(err) {
 				if (err) {
 					sendErr(res, 'internal error (server fault)');
-					console.log('Create entry in db err: ' + err);
+					winston.log('error', 'Create entry in db err: ' + err);
 				} else {
 					time = new Date().getTime() - start;
 					if (time > longest) {
 						longest = time;
 					}
-					console.log('Created! Execution time: ' + time + 'ms longest: ' + longest + ' ms');
+					winston.log('dev', 'Created! Execution time: ' + time + 'ms longest: ' + longest + ' ms');
 					loadtest();
 				}
 			});
@@ -63,7 +76,7 @@ function loadtest() {
 
 txnManager.on('payment', function(txn) {
 	complete(txn);
-	console.log('[COMM] Notifying ' + txn.address + ' of completion');
+	winston.log('txn', 'Notifying ' + txn.address + ' of completion');
 	api.socketUpdate(txn.address, {
 		txid: txn.txid,
 		amount: txn.amount
@@ -71,30 +84,30 @@ txnManager.on('payment', function(txn) {
 });
 
 txnManager.on('queued', function(txn) {
-	console.log('[COMM] Notifying ' + txn.address + ' of update (confirms: ' + txn.confirmations + ')');
+	winston.log('txn', 'Notifying ' + txn.address + ' of update (confirms: ' + txn.confirmations + ')');
 	api.socketUpdate(txn.address, txn, 'update');
 });
 txnManager.on('new', function(txn) {
 	database.devbase.create(txn.txid, 'initial', 'receive', function() {
-		console.log('[DB] devbase logged txn');
+		winston.log('txn', 'devbase logged txn');
 	});
-	console.log('[RATE] Setting rate for txn ' + txn.txid);
+	winston.log('txn', 'Setting rate for txn ' + txn.txid);
 	setRate(txn);
 });
 txnManager.on('error', function(err) {
-	console.log('txnman: ' + err);
+	winston.log('error', 'txnman: ' + err);
 });
 
 walletnotify.on('notify', function(hash, type) {
-	console.log('[NOTIFICATION] received notify from wallet clients');
+	winston.log('txn', 'received notify from wallet clients');
 	database.procbase.create(hash, type, function(err) {
-		if (err) console.log('Couldnt add ' + hash + ' to procbase');
+		if (err) winston.log('error', 'Couldnt add ' + hash + ' to procbase');
 	});
 	txnManager.update(hash, type);
 });
 
 walletnotify.on('error', function(err) {
-	console.log('Wallet notify: ' + err);
+	winston.log('error', 'Wallet notify: ' + err);
 });
 
 blocknotify.on('block', function(type) {
@@ -102,7 +115,7 @@ blocknotify.on('block', function(type) {
 });
 
 blocknotify.on('error', function(err) {
-	console.log('Block notify: ' + err);
+	winston.log('error', 'Block notify: ' + err);
 });
 
 api.on('dev', function(res) {
@@ -114,7 +127,7 @@ api.on('lookup', function(secureid, res) {
 	database.address(secureid, function(err, result) {
 		if (err) {
 			sendErr(res, 'internal error (server fault)');
-			console.log('DB lookup err: ' + err);
+			winston.log('error', 'DB lookup err: ' + err);
 		} else if (!result) {
 			sendErr(res, 'no results for specified secureid')
 		} else {
@@ -123,18 +136,18 @@ api.on('lookup', function(secureid, res) {
 
 			rate.rate(result.fromcurrency, result.tocurrency, function(err, rateVal) {
 				if (err) {
-					console.log('rate err: ' + err);
+					winston.log('error', 'rate err: ' + err);
 					sendErr(res, 'internal error (server fault)');
 				} else {
 					database.txnbase.find(secureid, function(err2, results) {
 						if (err2) {
 							sendErr(res, 'internal error (server fault)');
-							console.log('txn find err: ' + err2);
+							winston.log('error', 'txn find err: ' + err2);
 						} else {
 							rate.fee(result.fromcurrency, function(err, fee) {
 
 								if (err) {
-									console.log('conversion fee err: ', err);
+									winston.log('error', 'conversion fee err: ', err);
 									sendErr(res, 'Couldnt get exchange rate fee (server error)');
 								} else {
 									res.jsonp({
@@ -167,13 +180,13 @@ api.on('request', function(from, to, rec, res) {
 	generateAddresses(from, to, function(err, inputAddy) {
 		if (err) {
 			sendErr(res, 'internal error (server fault)');
-			console.log('Generate address err: ' + err);
+			winston.log('error', 'Generate address err: ' + err);
 		} else {
 			var id = makeid(20);
 			createRow(inputAddy, rec, from, to, id, function(err) {
 				if (err) {
 					sendErr(res, 'internal error (server fault)');
-					console.log('Create entry in db err: ' + err);
+					winston.log('error', 'Create entry in db err: ' + err);
 				} else {
 					res.jsonp({
 						address: inputAddy,
@@ -191,7 +204,7 @@ api.on('track', function(id, res) {
 	database.txnbase.find(id, function(err, rows, count) {
 		if (err) {
 			sendErr(res, 'internal error (server fault)');
-			console.log('txnbase find id err: ' + err);
+			winston.log('error', 'txnbase find id err: ' + err);
 		} else {
 			if (count <= 0) {
 				res.jsonp({
@@ -213,7 +226,7 @@ api.on('rate', function(from, to, res) {
 	if (from == to) {
 		rate.fee(from, function(err, fee) {
 			if (err) {
-				console.log('Get fee err: ' + err);
+				winston.log('error', 'Get fee err: ' + err);
 				sendErr(res, 'Couldnt get fee (internal server error)');
 			}
 			res.jsonp({
@@ -229,12 +242,12 @@ api.on('rate', function(from, to, res) {
 		rate.rate(from, to, function(err, rateVal) {
 			if (err) {
 				sendErr(res, 'internal error (server fault)');
-				console.log('fetch rate err: ' + err);
+				winston.log('error', 'fetch rate err: ' + err);
 			} else {
 				rate.fee(from, function(err, fee) {
 
 					if (err) {
-						console.log('conversion fee err: ', err);
+						winston.log('error', 'conversion fee err: ', err);
 						sendErr(res, 'Couldnt get exchange rate fee (server error)');
 					} else {
 
@@ -260,31 +273,31 @@ api.on('force', function(hash, type, res) {
 function complete(txn) {
 	database.find(txn.address, function(err, pair) {
 		if (err || !pair) {
-			console.log('[CRITICAL] Couldnt process ' + txn.txid + ' database err: ' + err);
+			winston.log('errorc', '[CRITICAL] Couldnt process ' + txn.txid + ' database err: ' + err);
 			return;
 		}
 		database.ratebase.rate(txn.txid, function(err, txnRate) {
 			if (err || !txnRate) {
-				console.log('[CRITICAL] Couldnt find rate for ' + txn.address);
+				winston.log('errorc', 'Couldnt find rate for ' + txn.address);
 				return;
 			}
 			rate.fee(pair.tocurrency, function(err, fee) {
 				if (err) {
-					console.log('[CRITICAL] Couldnt get fee for ' + txn.address);
+					winston.log('errorc', 'Couldnt get fee for ' + txn.address);
 					return;
 				}
 				var sendAmount = Math.ceil((txn.amount * txnRate.rate - fee) * 100000000) / 100000000;
 				if (sendAmount > 0) {
 					send(pair.tocurrency, pair.receiver, sendAmount, function(err) {
 						if (err) {
-							console.log('send fail, err: ' + err);
+							winston.log('errorc', 'send fail, err: ' + err);
 							return;
 						}
 						cull(txn, pair, sendAmount, false);
 
 					});
 				} else {
-					console.log('[DROP] Received amount below fee');
+					winston.log('txn', 'Received amount below fee');
 					cull(txn, pair, 0, true);
 				}
 
@@ -302,23 +315,23 @@ function cull(txn, row, amount, dropped) {
 	}
 	if (!dropped) {
 		database.txnbase.create(row.secureid, txn.txid, txn.amount, function(err) {
-			if (err) console.log('[SEMICRIT] txnbase create err: ' + err);
+			if (err) winston.log('error', 'txnbase create err: ' + err);
 		});
 		database.devbase.create(txn.txid, txn.amount + ' ' + txn.currency + ' to ' + amount + ' ' + row.tocurrency, 'send', function(err) {
-			if (err) console.log('[SEMICRIT] devbase create err: ' + err);
+			if (err) winston.log('error', 'devbase create err: ' + err);
 		});
 	} else {
 		database.devbase.create(txn.txid, txn.amount + ' ' + txn.currency + ' to ' + amount + ' ' + row.tocurrency, 'drop', function(err) {
-			if (err) console.log('[SEMICRIT] devbase create err: ' + err);
+			if (err) winston.log('error', 'devbase create err: ' + err);
 		});
 	}
 
 	database.procbase.remove(txn.txid, function(err, res) {
-		if (err || res.rowCount == 0) console.log('[SEMICRIT] Couldnt delete ' + txn.txid + 'from procbase');
+		if (err || res.rowCount == 0) winston.log('error', 'Couldnt delete ' + txn.txid + 'from procbase');
 	});
 
 	database.ratebase.remove(txn.txid, function(err) {
-		if (err) console.log('[SEMICRIT] Couldnt remove from ratebase');
+		if (err) winston.log('error', 'Couldnt remove from ratebase');
 	});
 
 }
@@ -336,7 +349,7 @@ function makeid(length) {
 function createRow(input, receiver, from, to, secureid, callback) {
 	database.create(input, receiver, from, to, secureid, function(err) {
 		if (err) {
-			console.log('database add err: ' + err);
+			winston.log('error', 'database add err: ' + err);
 			callback(true);
 		} else {
 			callback(false);
@@ -347,7 +360,7 @@ function createRow(input, receiver, from, to, secureid, callback) {
 function generateAddresses(from, to, callback) {
 	address(from, function(err, input) {
 		if (err) {
-			console.log('generate address #1 err: ' + err);
+			winston.log('error', 'generate address #1 err: ' + err);
 			callback(true);
 		} else {
 			callback(false, input);
@@ -361,13 +374,13 @@ function setRate(txn) {
 		if (result) {
 			rate.rate(txn.currency, result.tocurrency, function(err, conversionRate) {
 				if (err) {
-					console.log('rate error: ' + err);
-					console.log('[CRITICAL] Couldnt rate lock ' + txn.txid);
+					winston.log('error', 'rate error: ' + err);
+					winston.log('errorc', 'Couldnt rate lock ' + txn.txid);
 
 				} else {
 					database.ratebase.create(txn.txid, conversionRate, function(err) {
 						if (err) {
-							console.log("[CRITICAL] Couldnt rate lock " + txn.txid + ", got error: " + err);
+							winston.log('errorc', "Couldnt rate lock " + txn.txid + ", got error: " + err);
 						}
 
 					});
@@ -375,7 +388,7 @@ function setRate(txn) {
 			});
 		} else {
 			cull(txn, false, txn.amount, true);
-			console.log('[WARN] Not stored (pair not found in db)');
+			winston.log('error', '[WARN] Not stored (pair not found in db)');
 		}
 	});
 }

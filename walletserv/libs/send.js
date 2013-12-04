@@ -1,7 +1,9 @@
 //The wallet!
 
 var wallet = require('../libs/wallet.js'),
-	config = require('./../config.js');
+	config = require('./../config.js'),
+	winston = require('winston');
+
 wallet = new wallet();
 
 function send(currency, address, amount, callback, ignore) {
@@ -24,12 +26,12 @@ function standardSend(client, address, amount, callback, ignore) {
 			if (err) {
 				callback(err, false);
 			} else {
-				console.log('[WALLET] Sent ' + amount + ' to ' + address);
+				winston.log('wallet', 'Sent ' + amount + ' to ' + address);
 				callback(false, true);
 			}
 		});
 	} else {
-		console.log('[test call] Sending ' + amount + ' to ' + address);
+		winston.log('dev', 'Sending ' + amount + ' to ' + address);
 		callback(false, true);
 	}
 }

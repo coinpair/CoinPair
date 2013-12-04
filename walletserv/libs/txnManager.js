@@ -4,7 +4,8 @@ var config = require('./../config.js'),
 	util = require('util'),
 	stored = require('../libs/stored.js'),
 	bitcoin = require('bitcoin'),
-	testing = require('../libs/test.js');
+	testing = require('../libs/test.js'),
+	winston = require('winston');
 
 function txnManager(logic) {
 	var self = this;
@@ -17,7 +18,7 @@ function txnManager(logic) {
 	this.block = function(currency) {
 
 		stored.refresh(currency, function(err, hash) {
-			if (config.test) console.log('[STOREDTXT] processing stored: ' + hash);
+			if (config.test) winston.log('dev', 'processing stored: ' + hash);
 			if (err) {
 				self.emit('error', err);
 			} else {
@@ -29,7 +30,7 @@ function txnManager(logic) {
 	this.update = function(hash, currency) {
 		if (config.test) {
 			testReply.on('data', function(data) {
-				if (config.test) console.log('[TEST] confirms: ' + data.confirmations);
+				if (config.test) winston.log('dev', 'confirms: ' + data.confirmations);
 				self.process(hash, currency, data, false);
 			});
 		} else {
@@ -67,7 +68,7 @@ function txnManager(logic) {
 
 		array.push(txn);
 
-		if (config.test) console.log(array);
+		if (config.test) winston.log('dev', array);
 		return newly;
 	}
 	this.remove = function(txn) {
@@ -77,7 +78,7 @@ function txnManager(logic) {
 				array.splice(i, 1);
 			}
 		}
-		if (config.test) console.log(array);
+		if (config.test) winston.log('dev', array);
 	}
 
 	this.process = function(hash, currency, data, err) {
@@ -100,7 +101,7 @@ function txnManager(logic) {
 			logic(txn, function(wait, sanitize) {
 				if (sanitize) {
 					stored.unstore(txn.txid, txn.currency, function(err) {
-						console.log('[DROP] Txn culled, went stale');
+						winston.log('txn', 'Txn culled, went stale');
 					});
 				} else if (wait) {
 					if (self.add(txn, self.table)) self.emit('new', txn);

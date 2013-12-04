@@ -3,7 +3,8 @@
 var net = require('net'),
 	events = require('events').EventEmitter,
 	util = require('util'),
-	config = require('../config.js');
+	config = require('../config.js'),
+	winston = require('winston');
 
 
 function walletNotify(port) {
@@ -21,9 +22,9 @@ function walletNotify(port) {
 				json = null
 			}
 			if (json == null) {
-				console.log('Error parsing: ' + str);
+				winston.log('error', 'Error parsing: ' + str);
 			} else {
-				if(config.allow.from.indexOf(json.type) != -1)self.emit('notify', json.hash, json.type);
+				if (config.allow.from.indexOf(json.type) != -1) self.emit('notify', json.hash, json.type);
 				else self.emit('error', 'Received wnotify for unallowed type');
 			}
 		});

@@ -1,7 +1,8 @@
 //The database module!
 
 var pg = require('pg'),
-	config = require('./../config.js');
+	config = require('./../config.js'),
+	winston = require('winston');
 
 
 //Database structure and naming (in order of how a transaction should go)
@@ -32,11 +33,11 @@ function database() {
 	this.test = function() {
 		connect(function(err, done, client) {
 			if (err) {
-				console.log('Test error: ' + err);
+				winston.log('dev', 'Test error: ' + err);
 
 			} else {
 				client.query('select * from addresslist;', function(err, rows) {
-					console.log(rows);
+					winston.log('error', rows);
 				});
 			}
 		});
@@ -57,6 +58,7 @@ function database() {
 	}
 
 	this.create = function(input, receiver, from, to, secureid, callback) {
+		winston.log('db', 'Creating address for ' + from + '-' + to + ' for ' + secureid);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
@@ -71,6 +73,7 @@ function database() {
 	}
 
 	this.address = function(secureid, callback) {
+		winston.log('db', 'Getting data for sid ' + secureid);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
@@ -91,6 +94,7 @@ function database() {
 		});
 	}
 	this.find = function(address, callback) {
+		winston.log('db', 'Getting data for addy ' + address);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
@@ -113,6 +117,7 @@ function database() {
 	this.txnbase = {};
 
 	this.txnbase.create = function(secureid, hash, amount, callback) {
+		winston.log('db', 'Creating txn for ' + secureid);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
@@ -128,6 +133,7 @@ function database() {
 
 
 	this.txnbase.find = function(secureid, callback) {
+		winston.log('db', 'Finding txn data for ' + secureid);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('Create error: ' + err);
@@ -155,7 +161,7 @@ function database() {
 	this.ratebase = {};
 
 	this.ratebase.create = function(hash, rate, callback) {
-
+		winston.log('db', 'Creating rate for ' + hash);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('connect error: ' + err);
@@ -171,7 +177,7 @@ function database() {
 		});
 	}
 	this.ratebase.remove = function(hash, callback) {
-
+		winston.log('db', 'Removing rate for ' + hash);
 		connect(function(err, done, client) {
 			if (err) {
 				callback(err);
@@ -186,6 +192,7 @@ function database() {
 		});
 	}
 	this.ratebase.rate = function(hash, callback) {
+		winston.log('db', 'Getting rate for ' + hash);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('connect error: ' + err);
@@ -206,6 +213,7 @@ function database() {
 
 	this.procbase = {}
 	this.procbase.create = function(hash, currency, callback) {
+		winston.log('db', 'Creating pending entry for ' + hash);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('connect error: ' + err);
@@ -222,6 +230,7 @@ function database() {
 		});
 	}
 	this.procbase.remove = function(hash, callback) {
+		winston.log('db', 'Removing pending entry for ' + hash);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('connect error: ' + err);
@@ -239,6 +248,7 @@ function database() {
 
 	this.devbase = {}
 	this.devbase.create = function(hash, conversion, type, callback) {
+		winston.log('db', 'Creating devbase entry for ' + hash);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('devbase connect error: ' + err);
@@ -254,6 +264,7 @@ function database() {
 		});
 	}
 	this.devbase.list = function(callback) {
+		winston.log('db', 'Listing devbase');
 		connect(function(err, done, client) {
 			if (err) {
 				callback('connect error: ' + err);

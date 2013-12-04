@@ -2,7 +2,9 @@
 
 var fs = require('fs'),
 	mkdirp = require('mkdirp'),
-	config = require('../config.js');
+	config = require('../config.js'),
+	winston = require('winston');
+
 
 function stored() {
 	this.refresh = function(currency, callback) {
@@ -26,10 +28,10 @@ function stored() {
 		currency = currency.toLowerCase();
 		var dir = "./unconfirmed/" + currency + '/' + hash + ".txt";
 		fs.exists(dir, function(exists) {
-			
+
 			if (exists) {
 				fs.unlink(dir, function(err) {
-					
+
 					if (err) {
 						callback(err);
 
@@ -46,7 +48,7 @@ function stored() {
 	}
 
 	this.store = function(hash, currency, callback) {
-		console.log('[TXTSTORE] Storing ' + hash + ' for currency ' + currency);
+		winston.log('txn', 'Storing ' + hash + ' for currency ' + currency);
 		var dir = "./unconfirmed/" + currency;
 
 		mkdirp(dir, function(err) {

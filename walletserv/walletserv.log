@@ -1,0 +1,4 @@
+{"level":"error","message":"generate address #1 err: Error: connect ECONNREFUSED","timestamp":"2013-12-04T05:51:17.548Z"}
+{"level":"error","message":"Generate address err: true","timestamp":"2013-12-04T05:51:17.550Z"}
+{"level":"error","message":"generate address #1 err: Error: connect ECONNREFUSED","timestamp":"2013-12-04T05:51:19.782Z"}
+{"level":"error","message":"Generate address err: true","timestamp":"2013-12-04T05:51:19.783Z"}

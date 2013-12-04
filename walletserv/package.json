@@ -11,7 +11,8 @@
     "btce": "latest",
     "async": "latest",
     "socket.io": "latest",
-    "request": "latest"
+    "request": "latest",
+    "winston": "latest"
   },
   "engines": {
     "node": "0.10.x",
