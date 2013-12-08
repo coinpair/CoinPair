@@ -15,19 +15,10 @@ function txnManager(logic) {
 	var testReply;
 	if (config.test) testReply = new testing.fakeGetTxn();
 
-	this.block = function(currency) {
-
-		stored.refresh(currency, function(err, hash) {
-			if (config.test) winston.log('dev', 'processing stored: ' + hash);
-			if (err) {
-				self.emit('error', err);
-			} else {
-				self.update(hash, currency);
-			}
-		});
-	}
-
-	this.update = function(hash, currency) {
+	this.update = function(hash, currency, notification) {
+		if (typeof notification === 'undefined') {
+			notification = false
+		}
 		if (config.test) {
 			testReply.on('data', function(data) {
 				if (config.test) winston.log('dev', 'confirms: ' + data.confirmations);
@@ -38,7 +29,7 @@ function txnManager(logic) {
 
 			if (client) {
 				client.getTransaction(hash, function(err, data) {
-					self.process(hash, currency, data, err);
+					self.process(hash, currency, data, notification, err);
 				});
 			} else {
 				self.emit('error', 'Couldnt get wallet, not specified in settings?');
@@ -65,8 +56,9 @@ function txnManager(logic) {
 			}
 		}
 
-
 		array.push(txn);
+
+		self.emit('update', txn);
 
 		if (config.test) winston.log('dev', array);
 		return newly;
@@ -81,7 +73,7 @@ function txnManager(logic) {
 		if (config.test) winston.log('dev', array);
 	}
 
-	this.process = function(hash, currency, data, err) {
+	this.process = function(hash, currency, data, notification, err) {
 
 		if (err) {
 			self.emit('error', err);
@@ -97,36 +89,20 @@ function txnManager(logic) {
 		var txn = objectify(hash, data.confirmations, data.amount, data.details[0].category, data.details[0].address, currency);
 
 		if (txn.category == 'receive') {
-
-			logic(txn, function(wait, sanitize) {
-				if (sanitize) {
-					stored.unstore(txn.txid, txn.currency, function(err) {
-						winston.log('txn', 'Txn culled, went stale');
-					});
-				} else if (wait) {
-					if (self.add(txn, self.table)) self.emit('new', txn);
-					self.emit('queued', txn);
-					if (txn.confirmations >= 1) {
-						stored.store(txn.txid, txn.currency, function(err) {
-							if (err) self.emit('error', 'could not store ' + txn.hash + ' for processing');
-						});
-					}
+			self.add(txn);
+			if (notification) {
+				self.emit('new', txn);
+			}
+			logic(txn, function(process, remove) {
+				if (remove) {
+					self.remove(txn);
 				} else {
-					if (txn.confirmations > 1) {
-						stored.unstore(txn.txid, txn.currency, function(err) {
-
-							if (err) throw new Error("Transaction not deleted!");
-							else {
-								self.remove(txn);
-								self.emit('payment', txn);
-							}
-						});
-					} else {
+					if (process) {
 						self.remove(txn);
 						self.emit('payment', txn);
 					}
-
 				}
+
 			});
 		}
 

@@ -212,16 +212,53 @@ function database() {
 	}
 
 	this.procbase = {}
-	this.procbase.create = function(hash, currency, callback) {
+	this.procbase.create = function(hash, address, amount, originalCurrency, currency, callback) {
 		winston.log('db', 'Creating pending entry for ' + hash);
 		connect(function(err, done, client) {
 			if (err) {
 				callback('connect error: ' + err);
 				done();
 			} else {
+				//CREATE TABLE IF NOT EXISTS procbase (hash varchar(65), address varchar(34), amount float, original varchar(3), currency varchar(3), date date
+				client.query("INSERT INTO procbase (hash, address, amount, original, currency, date) VALUES ($1, $2, $3, $4, $5, now());", [hash, address, amount, originalCurrency, currency], function(err, res) {
 
-				client.query("INSERT INTO procbase (hash, currency, date) VALUES ($1, $2, now());", [hash, currency], function(err, res) {
+					callback(err, res);
+					done();
+				});
 
+			}
+		});
+	}
+	this.procbase.exists = function(hash, callback) {
+		winston.log('db', 'Finding if hash exists: ' + hash);
+		connect(function(err, done, client) {
+			if (err) {
+				callback('connect error: ' + err);
+				done();
+			} else {
+				//CREATE TABLE IF NOT EXISTS procbase (hash varchar(65), address varchar(34), amount float, original varchar(3), currency varchar(3), date date
+				client.query("SELECT * FROM procbase WHERE hash=$1;", [hash], function(err, res) {
+					if (res.rowCount != 1) res = false;
+					else res = res.rows[0];
+
+					callback(err, res);
+					done();
+				});
+
+			}
+		});
+	}
+	this.procbase.list = function(currency, callback) {
+		winston.log('db', 'Finding all in pending marked ' + currency);
+		connect(function(err, done, client) {
+			if (err) {
+				callback('connect error: ' + err);
+				done();
+			} else {
+
+				client.query("SELECT * FROM procbase WHERE original=$1;", [currency], function(err, res) {
+					if (res.rowCount == 0) res = false;
+					else res = res.rows;
 					callback(err, res);
 					done();
 				});

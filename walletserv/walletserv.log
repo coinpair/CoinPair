@@ -2,3 +2,118 @@
 {"level":"error","message":"Generate address err: true","timestamp":"2013-12-04T05:51:17.550Z"}
 {"level":"error","message":"generate address #1 err: Error: connect ECONNREFUSED","timestamp":"2013-12-04T05:51:19.782Z"}
 {"level":"error","message":"Generate address err: true","timestamp":"2013-12-04T05:51:19.783Z"}
+{"level":"error","message":"[WARN] Not stored (pair not found in db)","timestamp":"2013-12-07T22:11:54.263Z"}
+{"level":"txn","message":"Created order to mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL for 0.995 btc from 1 btc","timestamp":"2013-12-07T22:19:14.968Z"}
+{"level":"txn","message":"Dropping new order, exists","timestamp":"2013-12-07T22:19:25.415Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T04:21:18.892Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T04:28:02.633Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 1)","timestamp":"2013-12-08T04:28:02.652Z"}
+{"level":"txn","message":"processing notified receive for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T04:28:02.653Z"}
+{"level":"txn","message":"Creating order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T04:28:02.654Z"}
+{"level":"txn","message":"Created order to mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL for 0.095 btc from 0.1 btc","timestamp":"2013-12-08T04:28:02.685Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T04:28:50.694Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 1)","timestamp":"2013-12-08T04:28:50.696Z"}
+{"level":"txn","message":"processing notified receive for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90-000 (btc)","timestamp":"2013-12-08T04:28:50.696Z"}
+{"level":"txn","message":"Creating order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90-000 (btc)","timestamp":"2013-12-08T04:28:50.696Z"}
+{"level":"errorc","message":"Couldnt create procbase entry. err: error: value too long for type character varying(65)","timestamp":"2013-12-08T04:28:50.708Z"}
+{"level":"errorc","message":"Failure for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90-000 (btc)","timestamp":"2013-12-08T04:28:50.709Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T04:29:44.087Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 1)","timestamp":"2013-12-08T04:29:44.088Z"}
+{"level":"txn","message":"processing notified receive for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T04:29:44.089Z"}
+{"level":"txn","message":"Creating order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T04:29:44.089Z"}
+{"level":"txn","message":"Dropping new order, exists","timestamp":"2013-12-08T04:29:44.096Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T05:23:40.462Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 3)","timestamp":"2013-12-08T05:23:40.465Z"}
+{"level":"txn","message":"processing notified receive for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T05:23:40.466Z"}
+{"level":"txn","message":"Creating order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T05:23:40.466Z"}
+{"level":"txn","message":"Created order to mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL for 0.095 btc from 0.1 btc","timestamp":"2013-12-08T05:23:40.486Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 6)","timestamp":"2013-12-08T06:28:15.066Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 6)","timestamp":"2013-12-08T06:29:14.320Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 6)","timestamp":"2013-12-08T06:30:55.402Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:30:55.404Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:30:55.404Z"}
+{"level":"errorc","message":"Procbase remove err: Did not delete anything (not present in db?)","timestamp":"2013-12-08T06:30:55.409Z"}
+{"level":"errorc","message":"Failure for hash undefined (undefined)","timestamp":"2013-12-08T06:30:55.410Z"}
+{"level":"info","message":"Received block notify of btc","timestamp":"2013-12-08T06:35:44.560Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 7)","timestamp":"2013-12-08T06:35:44.571Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:35:44.571Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:35:44.572Z"}
+{"level":"txn","message":"Removing order for hash undefined (undefined)","timestamp":"2013-12-08T06:35:44.576Z"}
+{"level":"txn","message":"Dropped undefined for amount below 0","timestamp":"2013-12-08T06:35:44.577Z"}
+{"level":"errorc","message":"Procbase remove err: Did not delete anything (not present in db?)","timestamp":"2013-12-08T06:35:44.578Z"}
+{"level":"errorc","message":"Failure for hash undefined (undefined)","timestamp":"2013-12-08T06:35:44.578Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 7)","timestamp":"2013-12-08T06:48:25.922Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:48:25.924Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:48:25.925Z"}
+{"level":"errorc","message":"Procbase remove err: Did not delete anything (not present in db?)","timestamp":"2013-12-08T06:48:25.931Z"}
+{"level":"errorc","message":"Failure for hash undefined (undefined)","timestamp":"2013-12-08T06:48:25.931Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 7)","timestamp":"2013-12-08T06:48:40.757Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:48:40.759Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:48:40.759Z"}
+{"level":"errorc","message":"Procbase remove err: Did not delete anything (not present in db?)","timestamp":"2013-12-08T06:48:40.765Z"}
+{"level":"errorc","message":"Failure for hash undefined (undefined)","timestamp":"2013-12-08T06:48:40.765Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 7)","timestamp":"2013-12-08T06:49:39.929Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:49:39.931Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:49:39.932Z"}
+{"level":"errorc","message":"Procbase remove err: Did not delete anything (not present in db?)","timestamp":"2013-12-08T06:49:39.937Z"}
+{"level":"errorc","message":"Failure for hash undefined (undefined)","timestamp":"2013-12-08T06:49:39.937Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 7)","timestamp":"2013-12-08T06:52:59.595Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:52:59.596Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:52:59.597Z"}
+{"level":"errorc","message":"Procbase remove err: Did not delete anything (not present in db?)","timestamp":"2013-12-08T06:52:59.604Z"}
+{"level":"errorc","message":"Failure for hash undefined (undefined)","timestamp":"2013-12-08T06:52:59.604Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 7)","timestamp":"2013-12-08T06:53:18.059Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:53:18.062Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:53:18.062Z"}
+{"level":"errorc","message":"Procbase remove err: Did not delete anything (not present in db?)","timestamp":"2013-12-08T06:53:18.071Z"}
+{"level":"errorc","message":"Failure for hash undefined (undefined)","timestamp":"2013-12-08T06:53:18.071Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 7)","timestamp":"2013-12-08T06:53:36.327Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:53:36.329Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:53:36.329Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T06:53:36.518Z"}
+{"level":"txn","message":"Removing order for hash undefined (undefined)","timestamp":"2013-12-08T06:53:36.522Z"}
+{"level":"txn","message":"Completed 0.095 btc to mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL","timestamp":"2013-12-08T06:53:36.522Z"}
+{"level":"errorc","message":"Procbase remove err: Did not delete anything (not present in db?)","timestamp":"2013-12-08T06:53:36.523Z"}
+{"level":"errorc","message":"Failure for hash undefined (undefined)","timestamp":"2013-12-08T06:53:36.523Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T06:53:36.524Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T06:55:50.514Z"}
+{"level":"info","message":"Received block notify of btc","timestamp":"2013-12-08T06:55:50.524Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 8)","timestamp":"2013-12-08T06:55:50.533Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:55:50.533Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:55:50.533Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T06:55:50.752Z"}
+{"level":"txn","message":"Removing order for hash undefined (undefined)","timestamp":"2013-12-08T06:55:50.776Z"}
+{"level":"txn","message":"Completed 0.095 btc to mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL","timestamp":"2013-12-08T06:55:50.776Z"}
+{"level":"errorc","message":"Procbase remove err: Did not delete anything (not present in db?)","timestamp":"2013-12-08T06:55:50.805Z"}
+{"level":"errorc","message":"Failure for hash undefined (undefined)","timestamp":"2013-12-08T06:55:50.805Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T06:55:50.805Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 8)","timestamp":"2013-12-08T06:56:59.068Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T06:56:59.070Z"}
+{"level":"txn","message":"Completing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:56:59.070Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T06:56:59.295Z"}
+{"level":"txn","message":"Removing order for hash 7ae16f396412b4c715301efe4ef1e2a0c5084690cb589ed72c94435a946cfc90 (btc)","timestamp":"2013-12-08T06:56:59.320Z"}
+{"level":"txn","message":"Completed 0.095 btc to mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL","timestamp":"2013-12-08T06:56:59.321Z"}
+{"level":"txn","message":"received notify from wallet clients","timestamp":"2013-12-08T06:56:59.323Z"}
+{"level":"info","message":"received notify from wallet clients","timestamp":"2013-12-08T07:07:21.488Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 0)","timestamp":"2013-12-08T07:07:21.496Z"}
+{"level":"txn","message":"processing notified receive for hash fdc5875c5464034d1dad8fabf77cce50ff95be356f9adae69d679b5eafd0aef6 (btc)","timestamp":"2013-12-08T07:07:21.499Z"}
+{"level":"txn","message":"Creating order for hash fdc5875c5464034d1dad8fabf77cce50ff95be356f9adae69d679b5eafd0aef6 (btc)","timestamp":"2013-12-08T07:07:21.499Z"}
+{"level":"txn","message":"Created order to mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL for 0.995 btc from 1 btc","timestamp":"2013-12-08T07:07:21.522Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 0)","timestamp":"2013-12-08T07:08:33.668Z"}
+{"level":"info","message":"received notify from wallet clients","timestamp":"2013-12-08T07:20:41.767Z"}
+{"level":"info","message":"received notify from wallet clients","timestamp":"2013-12-08T07:20:41.784Z"}
+{"level":"info","message":"received notify from wallet clients","timestamp":"2013-12-08T07:20:41.850Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 1)","timestamp":"2013-12-08T07:20:41.864Z"}
+{"level":"txn","message":"processing notified receive for hash fdc5875c5464034d1dad8fabf77cce50ff95be356f9adae69d679b5eafd0aef6 (btc)","timestamp":"2013-12-08T07:20:41.865Z"}
+{"level":"txn","message":"Creating order for hash fdc5875c5464034d1dad8fabf77cce50ff95be356f9adae69d679b5eafd0aef6 (btc)","timestamp":"2013-12-08T07:20:41.865Z"}
+{"level":"info","message":"Received block notify of btc","timestamp":"2013-12-08T07:20:41.869Z"}
+{"level":"txn","message":"Dropping new order, exists","timestamp":"2013-12-08T07:20:41.875Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 1)","timestamp":"2013-12-08T07:20:41.880Z"}
+{"level":"info","message":"Received block notify of btc","timestamp":"2013-12-08T07:43:24.866Z"}
+{"level":"txn","message":"Notifying n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj of update (confirms: 2)","timestamp":"2013-12-08T07:43:24.886Z"}
+{"level":"txn","message":"Receive to n3Pmjs3xSQjw2XrLpA9NCdWqC13gkRorEj completed","timestamp":"2013-12-08T07:43:24.886Z"}
+{"level":"txn","message":"Completing order for hash fdc5875c5464034d1dad8fabf77cce50ff95be356f9adae69d679b5eafd0aef6 (btc)","timestamp":"2013-12-08T07:43:24.886Z"}
+{"level":"info","message":"received notify from wallet clients","timestamp":"2013-12-08T07:43:25.112Z"}
+{"level":"txn","message":"Removing order for hash fdc5875c5464034d1dad8fabf77cce50ff95be356f9adae69d679b5eafd0aef6 (btc)","timestamp":"2013-12-08T07:43:25.163Z"}
+{"level":"txn","message":"Completed 0.995 btc to mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL","timestamp":"2013-12-08T07:43:25.163Z"}
+{"level":"info","message":"received notify from wallet clients","timestamp":"2013-12-08T07:43:25.165Z"}

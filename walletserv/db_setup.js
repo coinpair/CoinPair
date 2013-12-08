@@ -23,7 +23,7 @@ pg.connect(function(err, client, done) {
 								console.log('ubase create err: ' + err);
 							} else {
 								console.log('ratebase created!');
-								client.query('CREATE TABLE IF NOT EXISTS procbase (hash varchar(65), currency varchar, date date);', function(err, response) {
+								client.query('CREATE TABLE IF NOT EXISTS procbase (hash varchar(65), address varchar(34), amount float, original varchar(3), currency varchar(3), date date);', function(err, response) {
 									if (err) {
 										console.log('ubase create err: ' + err);
 									} else {

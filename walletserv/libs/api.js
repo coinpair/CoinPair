@@ -22,6 +22,8 @@ function api(port) {
 	};
 
 	app.get('/:from-:to/:rec', function(req, res) {
+		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+		winston.log('info', 'Create address request from ' + ip);
 		req.params.to = req.params.to.toLowerCase();
 		req.params.from = req.params.from.toLowerCase();
 
@@ -31,6 +33,7 @@ function api(port) {
 
 				if (isset(req.params.rec)) {
 					if (req.params.rec.length >= 30) {
+
 						self.emit('request', req.params.from, req.params.to, req.params.rec, res);
 					} else {
 
@@ -49,6 +52,8 @@ function api(port) {
 		}
 	});
 	app.get('/track/:id', function(req, res) {
+		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+		winston.log('info', 'Track request from ' + ip);
 		var id = req.params.id;
 		if (!isset(id) || (id.length != 20)) {
 			sendErr(res, 'improper id');
@@ -58,14 +63,20 @@ function api(port) {
 	});
 
 	app.get('/dev/dontsharethisurlmkay/', function(req, res) {
+		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+		winston.log('info', 'Dev page request from ' + ip);
 		self.emit('dev', res);
 	});
 
 	app.get('/dev/force/:cur/:id', function(req, res) {
+		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+		winston.log('info', 'Dev force request from ' + ip);
 		self.emit('force', req.params.id, req.params.cur, res);
 	});
 
 	app.get('/rate/:pair/', function(req, res) {
+		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+		winston.log('info', 'Rate request from ' + ip);
 		var pair = req.params.pair.toLowerCase();
 		if (isset(pair) && pair.length == 7 && pair.indexOf('-') != -1) {
 			var seperated = pair.split('-');
@@ -79,6 +90,8 @@ function api(port) {
 		}
 	});
 	app.get('/lookup/:id/', function(req, res) {
+		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+		winston.log('info', 'Lookup request from ' + ip);
 		var secureid = req.params.id;
 		if (secureid.length != 20) {
 			res.jsonp({
@@ -107,7 +120,7 @@ function api(port) {
 	});
 
 	app.on('error', function(err) {
-		console.log(err);
+		winston.log('error', 'app err: ' + err);
 	});
 
 	server.listen(port);

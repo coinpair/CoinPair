@@ -11,6 +11,7 @@ var walletnotify = require('./libs/walletnotify.js'),
 	txnManager = require('./libs/txnManager.js'),
 	stored = require('./libs/stored.js'),
 	dev = require('./libs/dev.js'),
+	async = require('async'),
 	winston = require('winston');
 
 winston = new(winston.Logger)({
@@ -31,17 +32,15 @@ database = new database();
 api = new api(config.ports.api);
 walletnotify = new walletnotify(config.ports.wnotify);
 blocknotify = new blocknotify(config.ports.bnotify);
+check();
 
 txnManager = new txnManager(function(txn, callback) {
 	//transaction logic
-	if (txn.confirmations == 1) callback(false, false);
-	else if (txn.confirmations >= config.confirmations.cull) callback(true, true);
-	else callback(true, false);
+	if (txn.confirmations > 1) callback(true, false);
+	else callback(false, false);
 });
 
-
 var longest = 0;
-
 
 
 function loadtest() {
@@ -74,36 +73,132 @@ function loadtest() {
 	});
 }
 
+txnManager.on('new', function(txn) {
+	winston.log('txn', 'processing notified receive for hash ' + txn.txid + ' (' + txn.currency + ')');
+	create(txn);
+});
+
 txnManager.on('payment', function(txn) {
+	winston.log('txn', 'Receive to ' + txn.address + ' completed');
 	complete(txn);
-	winston.log('txn', 'Notifying ' + txn.address + ' of completion');
 	api.socketUpdate(txn.address, {
 		txid: txn.txid,
 		amount: txn.amount
 	}, 'complete');
 });
 
-txnManager.on('queued', function(txn) {
+txnManager.on('update', function(txn) {
 	winston.log('txn', 'Notifying ' + txn.address + ' of update (confirms: ' + txn.confirmations + ')');
 	api.socketUpdate(txn.address, txn, 'update');
 });
-txnManager.on('new', function(txn) {
-	database.devbase.create(txn.txid, 'initial', 'receive', function() {
-		winston.log('txn', 'devbase logged txn');
+
+function complete(txn) {
+	winston.log('txn', 'Completing order for hash ' + txn.txid + ' (' + txn.currency + ')');
+	database.procbase.exists(txn.txid, function(err, exists) {
+		if (err) {
+			winston.log('errorc', 'Could not process transaction, db err: ' + err);
+		} else {
+			if (exists) {
+				if (exists.amount > 0) {
+					send(exists.currency, exists.address, exists.amount, function(err) {
+						if (err) {
+							winston.log('errorc', 'send fail, err: ' + err);
+
+						} else {
+							remove(txn);
+							winston.log('txn', 'Completed ' + exists.amount + ' ' + exists.currency + ' to ' + exists.address);
+						}
+
+					});
+				} else {
+					remove(txn);
+					winston.log('txn', 'Dropped ' + exists.hash + ' for amount below 0');
+				}
+			} else {
+				winston.log('Order doesnt exist for ' + txn.txid + ' (' + txn.currency + ')');
+			}
+		}
 	});
-	winston.log('txn', 'Setting rate for txn ' + txn.txid);
-	setRate(txn);
-});
+}
+
+function create(txn) {
+	winston.log('txn', 'Creating order for hash ' + txn.txid + ' (' + txn.currency + ')');
+	database.procbase.exists(txn.txid, function(err, exists) {;
+		if (err || exists) {
+			if (err) {
+				winston.log('errorc', 'Couldnt create new order. err: ' + err);
+				failTxn(txn);
+			} else {
+				winston.log('txn', 'Dropping new order, exists');
+			}
+			return;
+		}
+		database.find(txn.address, function(err, result) {
+			if (result) {
+				rate.rate(txn.currency, result.tocurrency, function(err, conversionRate) {
+					if (err) {
+						winston.log('errorc', 'rate error: ' + err);
+						failTxn(txn);
+
+					} else {
+						rate.fee(result.fromcurrency, function(err, fee) {
+							if (err) {
+								winston.log('errorc', 'conversion fee err: ', err);
+								sendErr(res, 'Couldnt get exchange rate fee (server error)');
+								failTxn(txn);
+							} else {
+								var amount = Math.ceil((txn.amount * conversionRate - fee) * 100000000) / 100000000;
+								database.procbase.create(txn.txid, result.receiver, amount, txn.currency, result.tocurrency, function(err, res) {
+									if (err || res.rowCount == 0) {
+										winston.log('errorc', 'Couldnt create procbase entry. err: ' + err);
+										failTxn(txn);
+									} else winston.log('txn', 'Created order to ' + result.receiver + ' for ' + amount + ' ' + result.tocurrency + ' from ' + txn.amount + ' ' + txn.currency);
+								});
+							}
+						});
+					}
+				});
+			} else {
+				winston.log('txn', '[WARN] Not stored (pair not found in db)');
+			}
+		});
+	})
+}
+
+function check() {
+	database.procbase.list('btc', function(err, rows) {
+		if (err) {
+			winston.log('error', 'DB find error: ' + err);
+		} else if (rows) {
+			async.forEach(rows, function(item, callback) {
+				txnManager.update(item.hash, item.original);
+			});
+		}
+	});
+}
+
+function remove(txn) {
+	winston.log('txn', 'Removing order for hash ' + txn.txid + ' (' + txn.currency + ')');
+	database.procbase.remove(txn.txid, function(err, row) {
+		if (err || row.rowCount == 0) {
+			if (err) winston.log('errorc', 'Procbase err: ' + err);
+			else winston.log('errorc', 'Procbase remove err: Did not delete anything (not present in db?)');
+			failTxn(txn);
+		}
+	});
+}
+
+function failTxn(txn) {
+	winston.log('errorc', 'Failure for hash ' + txn.txid + ' (' + txn.currency + ')');
+}
+
 txnManager.on('error', function(err) {
 	winston.log('error', 'txnman: ' + err);
 });
 
 walletnotify.on('notify', function(hash, type) {
-	winston.log('txn', 'received notify from wallet clients');
-	database.procbase.create(hash, type, function(err) {
-		if (err) winston.log('error', 'Couldnt add ' + hash + ' to procbase');
-	});
-	txnManager.update(hash, type);
+	winston.log('info', 'received notify from wallet clients');
+	txnManager.update(hash, type, true);
 });
 
 walletnotify.on('error', function(err) {
@@ -111,7 +206,8 @@ walletnotify.on('error', function(err) {
 });
 
 blocknotify.on('block', function(type) {
-	txnManager.block(type);
+	winston.log('info', 'Received block notify of ' + type);
+	check();
 });
 
 blocknotify.on('error', function(err) {
@@ -124,6 +220,7 @@ api.on('dev', function(res) {
 
 //Dealing with api requests for a bitcoin address
 api.on('lookup', function(secureid, res) {
+
 	database.address(secureid, function(err, result) {
 		if (err) {
 			sendErr(res, 'internal error (server fault)');
@@ -270,72 +367,6 @@ api.on('force', function(hash, type, res) {
 	res.send('ok');
 });
 
-function complete(txn) {
-	database.find(txn.address, function(err, pair) {
-		if (err || !pair) {
-			winston.log('errorc', '[CRITICAL] Couldnt process ' + txn.txid + ' database err: ' + err);
-			return;
-		}
-		database.ratebase.rate(txn.txid, function(err, txnRate) {
-			if (err || !txnRate) {
-				winston.log('errorc', 'Couldnt find rate for ' + txn.address);
-				return;
-			}
-			rate.fee(pair.tocurrency, function(err, fee) {
-				if (err) {
-					winston.log('errorc', 'Couldnt get fee for ' + txn.address);
-					return;
-				}
-				var sendAmount = Math.ceil((txn.amount * txnRate.rate - fee) * 100000000) / 100000000;
-				if (sendAmount > 0) {
-					send(pair.tocurrency, pair.receiver, sendAmount, function(err) {
-						if (err) {
-							winston.log('errorc', 'send fail, err: ' + err);
-							return;
-						}
-						cull(txn, pair, sendAmount, false);
-
-					});
-				} else {
-					winston.log('txn', 'Received amount below fee');
-					cull(txn, pair, 0, true);
-				}
-
-
-			});
-		});
-	});
-}
-
-function cull(txn, row, amount, dropped) {
-	if (!row) {
-		row = {
-			tocurrency: 'unset'
-		}
-	}
-	if (!dropped) {
-		database.txnbase.create(row.secureid, txn.txid, txn.amount, function(err) {
-			if (err) winston.log('error', 'txnbase create err: ' + err);
-		});
-		database.devbase.create(txn.txid, txn.amount + ' ' + txn.currency + ' to ' + amount + ' ' + row.tocurrency, 'send', function(err) {
-			if (err) winston.log('error', 'devbase create err: ' + err);
-		});
-	} else {
-		database.devbase.create(txn.txid, txn.amount + ' ' + txn.currency + ' to ' + amount + ' ' + row.tocurrency, 'drop', function(err) {
-			if (err) winston.log('error', 'devbase create err: ' + err);
-		});
-	}
-
-	database.procbase.remove(txn.txid, function(err, res) {
-		if (err || res.rowCount == 0) winston.log('error', 'Couldnt delete ' + txn.txid + 'from procbase');
-	});
-
-	database.ratebase.remove(txn.txid, function(err) {
-		if (err) winston.log('error', 'Couldnt remove from ratebase');
-	});
-
-}
-
 function makeid(length) {
 	var text = "";
 	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -369,29 +400,6 @@ function generateAddresses(from, to, callback) {
 	});
 }
 
-function setRate(txn) {
-	database.find(txn.address, function(err, result) {
-		if (result) {
-			rate.rate(txn.currency, result.tocurrency, function(err, conversionRate) {
-				if (err) {
-					winston.log('error', 'rate error: ' + err);
-					winston.log('errorc', 'Couldnt rate lock ' + txn.txid);
-
-				} else {
-					database.ratebase.create(txn.txid, conversionRate, function(err) {
-						if (err) {
-							winston.log('errorc', "Couldnt rate lock " + txn.txid + ", got error: " + err);
-						}
-
-					});
-				}
-			});
-		} else {
-			cull(txn, false, txn.amount, true);
-			winston.log('error', '[WARN] Not stored (pair not found in db)');
-		}
-	});
-}
 
 
 function isNumber(n) {
