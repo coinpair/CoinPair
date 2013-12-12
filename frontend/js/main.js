@@ -1,3 +1,16 @@
+$(".paragraphtitle").click(function(event){
+	var id = event.target.id;
+	$('#' + id + '-slide').slideToggle();
+	var currentCtrl = $('#' + id + '-ctrl').html();
+	if(currentCtrl== "+"){
+		$('#' + id + '-ctrl').html("-");
+	}
+	else {
+		$('#' + id + '-ctrl').html("+")
+	}
+});
+
+
 $(".dropdown-menu li a").click(function() {
 	var selText = $(this).text();
 	$(this).parents('.btn-group').find('.dropdown-toggle').html(selText + ' <span class="caret"></span>');
@@ -60,7 +73,12 @@ function update(from, to, amount) {
 			if (decimalPlaces(firstAmount) > 5) {
 				firstAmount = parseFloat((firstAmount).toFixed(5));
 			}
-			$(element).html(firstAmount + ' ' + from + ' = ' + amount + ' ' + to);
+			if (firstAmount == 1) {
+				$(element).html(firstAmount + ' ' + from + ' = ' + amount + ' ' + to);
+			} else {
+				$(element).html('~' + firstAmount + ' ' + from + ' = ' + amount + ' ' + to);
+			}
+
 
 		}
 	});

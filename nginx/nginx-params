@@ -3,12 +3,24 @@ upstream app_coinpair {
     server 192.95.39.146:80;
 }
 
+#redirect server instance
+server {
+	listen         80;
+	server_name    coinpair.com;
+	rewrite        ^ https://$server_name$request_uri? permanent;
+}
 
 # the nginx server instance
 server {
-    listen 0.0.0.0:80;
-    server_name coinpair.com coinpair;
-    access_log /var/log/nginx/coinpair.log;
+    listen 443 ssl;
+    server_name coinpair.com;
+
+    ssl_certificate /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key.nopass;
+
+    ssl_protocols        SSLv3 TLSv1;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
     location ~ ^/(images/|img/|javascript/|js/|css/|stylesheets/|flash/|media/|static/|track.html|index.html|robots.txt|humans.txt|favicon.ico) {
       root /usr/share/nginx/html;
       access_log off;

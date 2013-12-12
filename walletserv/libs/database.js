@@ -316,6 +316,41 @@ function database() {
 			}
 		});
 	}
+
+	this.stats.create = function(type, metadata, data, timestamp, callback) {
+		winston.log('db', 'Creating statistic entry');
+		connect(function(err, done, client) {
+			if (err) {
+				callback('connect error: ' + err);
+				done();
+			} else {
+
+				client.query("insert into statistics values (type, metadata, data, date);", [type, metadata, data, timestamp], function(err, res) {
+					callback(err, res);
+					done();
+				});
+
+			}
+		});
+	}
+	this.stats.list = function(type, callback) {
+		winston.log('db', 'Creating statistic entry');
+		connect(function(err, done, client) {
+			if (err) {
+				callback('connect error: ' + err);
+				done();
+			} else {
+
+				client.query("select * from statistics where type=$1;", [type], function(err, res) {
+					if (!err && res.rowCount > 0) res = res.rows;
+					else res = false;
+					callback(err, res);
+					done();
+				});
+
+			}
+		});
+	}
 }
 
 module.exports = database;

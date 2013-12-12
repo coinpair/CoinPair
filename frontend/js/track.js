@@ -2,14 +2,22 @@ $(document).load(function() {
 
 
 });
+var showing = false;
+
+function showError() {
+	if (!showing) $('.container').prepend('<div class="well error"><h1>We could not find any addresses</h1>The id in the url may be mistyped, it may not exist, or your connection to the server is not complete.</div>');
+
+	showing = true;
+}
+
 $(document).ajaxError(function() {
 	hideSpinner();
-	$('body').append('<div class="well"><h1>We could not find any addresses</h1>The id in the url may be mistyped, it may not exist, or your connection to the server is not complete.</div>');
+	showError();
 });
 
 var pageID;
 $(document).ready(function() {
-	
+
 	var prmstr = window.location.search.substr(1);
 	var prmarr = prmstr.split("&");
 	var params = {};
@@ -24,11 +32,11 @@ $(document).ready(function() {
 		lookup(params['id'], function(err, data) {
 			if (err) {
 				hideSpinner();
-				$('.container').prepend('<div class="well error"><h1>We could not find any addresses</h1>The id in the url may be mistyped, it may not exist, or your connection to the server is not complete.</div>');
+				showError();
 			} else {
 				hideSpinner();
 				if (isset(data.error)) {
-					$('.container').prepend('<div class="row error"><div class="well"><h1>We could not find any addresses</h1>The id in the url may be mistyped, it may not exist. The server gave this reason: ' + data.error + '</div></div>');
+					showError();
 				} else {
 
 					page(data);
@@ -37,9 +45,9 @@ $(document).ready(function() {
 		});
 	} else {
 		$('.nocode').show();
-		$('.submitid-btn').click(function(){
-			if($('.submitid').val().length > 0){
-				window.location.href="track.html?id=" + $('.submitid').val();
+		$('.submitid-btn').click(function() {
+			if ($('.submitid').val().length > 0) {
+				window.location.href = "track.html?id=" + $('.submitid').val();
 			}
 		});
 	}
