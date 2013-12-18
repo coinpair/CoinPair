@@ -12,7 +12,9 @@ var walletnotify = require('./libs/walletnotify.js'),
 	stored = require('./libs/stored.js'),
 	dev = require('./libs/dev.js'),
 	async = require('async'),
-	winston = require('winston');
+	winston = require('winston'),
+	stats = require('./libs/stats.js');
+
 
 winston = new(winston.Logger)({
 	levels: config.logLevels.levels,
@@ -31,7 +33,8 @@ rate = new rate();
 database = new database();
 api = new api(config.ports.api);
 walletnotify = new walletnotify(config.ports.wnotify);
-blocknotify = new blocknotify(config.ports.bnotify);
+blocknotify = new blocknotify(config.ports.bnotify),
+stats = new stats();
 check();
 
 txnManager = new txnManager(function(txn, callback) {
@@ -41,6 +44,26 @@ txnManager = new txnManager(function(txn, callback) {
 });
 
 var longest = 0;
+
+console.log(stats.list());
+
+setInterval(function() {
+	var statsArray = stats.list();
+	statsArray = statsArray.slice(0);
+	stats.dump();
+	async.forEach(statsArray, function(element, callback) {
+		//this.stats.create = function(type, metadata, data, timestamp, callback) {
+		var value = Math.floor(element.total / element.count * 1000) / 1000;
+		database.stats.create(element.type, element.metadata, value.toString(), function(err, res) {
+			if (err || res.rowCount == 0) {
+				winston.log('error', 'couldnt create statistic');
+				winston.log('error', err);
+			}
+			callback();
+		});
+	});
+
+}, 1000 * 60 * 60 * config.period);
 
 
 function loadtest() {
@@ -93,6 +116,7 @@ txnManager.on('update', function(txn) {
 });
 
 function complete(txn) {
+	var start = new Date().getTime();
 	winston.log('txn', 'Completing order for hash ' + txn.txid + ' (' + txn.currency + ')');
 	database.procbase.exists(txn.txid, function(err, exists) {
 		if (err) {
@@ -105,6 +129,9 @@ function complete(txn) {
 							winston.log('errorc', 'send fail, err: ' + err);
 
 						} else {
+							var end = new Date().getTime();
+							stats.average('txn', 'create', end - start);
+							stats.add('volume', exists.original + '-' + exists.currency, exists.amount);
 							remove(txn);
 							winston.log('txn', 'Completed ' + exists.amount + ' ' + exists.currency + ' to ' + exists.address);
 						}
@@ -123,6 +150,7 @@ function complete(txn) {
 
 function create(txn) {
 	winston.log('txn', 'Creating order for hash ' + txn.txid + ' (' + txn.currency + ')');
+	var start = new Date().getTime();
 	database.procbase.exists(txn.txid, function(err, exists) {;
 		if (err || exists) {
 			if (err) {
@@ -152,7 +180,11 @@ function create(txn) {
 									if (err || res.rowCount == 0) {
 										winston.log('errorc', 'Couldnt create procbase entry. err: ' + err);
 										failTxn(txn);
-									} else winston.log('txn', 'Created order to ' + result.receiver + ' for ' + amount + ' ' + result.tocurrency + ' from ' + txn.amount + ' ' + txn.currency);
+									} else {
+										var end = new Date().getTime();
+										stats.average('txn', 'create', end - start);
+										winston.log('txn', 'Created order to ' + result.receiver + ' for ' + amount + ' ' + result.tocurrency + ' from ' + txn.amount + ' ' + txn.currency);
+									}
 								});
 							}
 						});
@@ -178,12 +210,16 @@ function check() {
 }
 
 function remove(txn) {
+	var start = new Date().getTime();
 	winston.log('txn', 'Removing order for hash ' + txn.txid + ' (' + txn.currency + ')');
 	database.procbase.remove(txn.txid, function(err, row) {
 		if (err || row.rowCount == 0) {
 			if (err) winston.log('errorc', 'Procbase err: ' + err);
 			else winston.log('errorc', 'Procbase remove err: Did not delete anything (not present in db?)');
 			failTxn(txn);
+		} else {
+			var end = new Date().getTime();
+			stats.average('txn', 'remove', end - start);
 		}
 	});
 }
@@ -220,7 +256,7 @@ api.on('dev', function(res) {
 
 //Dealing with api requests for a bitcoin address
 api.on('lookup', function(secureid, res) {
-
+	var start = new Date().getTime();
 	database.address(secureid, function(err, result) {
 		if (err) {
 			sendErr(res, 'internal error (server fault)');
@@ -247,6 +283,8 @@ api.on('lookup', function(secureid, res) {
 									winston.log('error', 'conversion fee err: ', err);
 									sendErr(res, 'Couldnt get exchange rate fee (server error)');
 								} else {
+									var end = new Date().getTime();
+									stats.average('request', 'lookup', end - start);
 									res.jsonp({
 										address: result.input,
 										receiver: result.receiver,
@@ -274,6 +312,7 @@ api.on('lookup', function(secureid, res) {
 
 //dealing with address request
 api.on('request', function(from, to, rec, res) {
+	var start = new Date().getTime();
 	generateAddresses(from, to, function(err, inputAddy) {
 		if (err) {
 			sendErr(res, 'internal error (server fault)');
@@ -285,6 +324,8 @@ api.on('request', function(from, to, rec, res) {
 					sendErr(res, 'internal error (server fault)');
 					winston.log('error', 'Create entry in db err: ' + err);
 				} else {
+					var end = new Date().getTime();
+					stats.average('request', from + '-' + to, end - start);
 					res.jsonp({
 						address: inputAddy,
 						secureid: id
@@ -298,11 +339,14 @@ api.on('request', function(from, to, rec, res) {
 
 //dealing with track requests
 api.on('track', function(id, res) {
+	var start = new Date().getTime();
 	database.txnbase.find(id, function(err, rows, count) {
 		if (err) {
 			sendErr(res, 'internal error (server fault)');
 			winston.log('error', 'txnbase find id err: ' + err);
 		} else {
+			var end = new Date().getTime();
+			stats.average('request', 'track', end - start);
 			if (count <= 0) {
 				res.jsonp({
 					total: count
@@ -334,8 +378,7 @@ api.on('rate', function(from, to, res) {
 			});
 		});
 	} else {
-
-
+		var start = new Date().getTime();
 		rate.rate(from, to, function(err, rateVal) {
 			if (err) {
 				sendErr(res, 'internal error (server fault)');
@@ -347,7 +390,8 @@ api.on('rate', function(from, to, res) {
 						winston.log('error', 'conversion fee err: ', err);
 						sendErr(res, 'Couldnt get exchange rate fee (server error)');
 					} else {
-
+						var end = new Date().getTime();
+						stats.average('request', 'rate', end - start);
 						res.jsonp({
 							rate: rateVal,
 							time: rate.time,

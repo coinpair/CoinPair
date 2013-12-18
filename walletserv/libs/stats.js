@@ -16,7 +16,12 @@ function stats() {
 			total: total
 		});
 	}
-
+	this.list = function() {
+		return statArray;
+	}
+	this.dump = function() {
+		statArray = [];
+	}
 	this.find = function(type, metadata) {
 		for (var i = 0; i < statArray.length; i++) {
 			var element = statArray[i];
@@ -26,6 +31,13 @@ function stats() {
 		}
 		return false;
 	}
+
+	this.add = function(type, metadata, amount) {
+		var found = self.find(type, metadata);
+		if (found) amount += found.total;
+		self.update(type, metadata, 1, amount);
+	}
+
 	this.average = function(type, metadata, data) {
 		var find = self.find(type, metadata);
 		var count = 1,

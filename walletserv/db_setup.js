@@ -33,7 +33,7 @@ pg.connect(function(err, client, done) {
 												console.log('ubase create err: ' + err);
 											} else {
 												console.log('devbase created');
-												client.query('CREATE TABLE IF NOT EXISTS statistics (type varchar(7), metadata varchar(10), data varchar(10), date date);', function(err, response) {
+												client.query('CREATE TABLE IF NOT EXISTS statistics (type varchar(7), metadata varchar(10), data varchar(10), date timestamp);', function(err, response) {
 													if (err) {
 														console.log('ubase create err: ' + err);
 													} else {

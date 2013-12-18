@@ -117,3 +117,19 @@
 {"level":"txn","message":"Removing order for hash fdc5875c5464034d1dad8fabf77cce50ff95be356f9adae69d679b5eafd0aef6 (btc)","timestamp":"2013-12-08T07:43:25.163Z"}
 {"level":"txn","message":"Completed 0.995 btc to mmhmMNfBiZZ37g1tgg2t8DDbNoEdqKVxAL","timestamp":"2013-12-08T07:43:25.163Z"}
 {"level":"info","message":"received notify from wallet clients","timestamp":"2013-12-08T07:43:25.165Z"}
+{"level":"error","message":"couldnt create statistic","timestamp":"2013-12-16T05:23:38.111Z"}
+{"name":"error","length":92,"severity":"ERROR","code":"42703","position":"32","file":"parse_expr.c","line":"768","routine":"transformColumnRef","level":"error","message":"","timestamp":"2013-12-16T05:23:38.113Z"}
+{"level":"error","message":"couldnt create statistic","timestamp":"2013-12-16T05:25:16.949Z"}
+{"name":"error","length":92,"severity":"ERROR","code":"42703","position":"32","file":"parse_expr.c","line":"768","routine":"transformColumnRef","level":"error","message":"","timestamp":"2013-12-16T05:25:16.952Z"}
+{"level":"error","message":"couldnt create statistic","timestamp":"2013-12-16T05:26:48.110Z"}
+{"name":"error","length":101,"severity":"ERROR","code":"42P01","position":"13","file":"parse_relation.c","line":"866","routine":"parserOpenTable","level":"error","message":"","timestamp":"2013-12-16T05:26:48.112Z"}
+{"level":"error","message":"couldnt create statistic","timestamp":"2013-12-16T05:28:04.106Z"}
+{"name":"error","length":101,"severity":"ERROR","code":"42P01","position":"13","file":"parse_relation.c","line":"866","routine":"parserOpenTable","level":"error","message":"","timestamp":"2013-12-16T05:28:04.109Z"}
+{"level":"error","message":"couldnt create statistic","timestamp":"2013-12-16T05:50:08.319Z"}
+{"name":"error","length":92,"severity":"ERROR","code":"42703","position":"32","file":"parse_expr.c","line":"768","routine":"transformColumnRef","level":"error","message":"","timestamp":"2013-12-16T05:50:08.322Z"}
+{"level":"error","message":"couldnt create statistic","timestamp":"2013-12-16T05:52:31.522Z"}
+{"name":"error","length":100,"severity":"ERROR","code":"22003","file":"numutils.c","line":"75","routine":"pg_atoi","level":"error","message":"","timestamp":"2013-12-16T05:52:31.524Z"}
+{"level":"error","message":"couldnt create statistic","timestamp":"2013-12-18T01:08:29.076Z"}
+{"name":"error","length":100,"severity":"ERROR","code":"22003","file":"numutils.c","line":"75","routine":"pg_atoi","level":"error","message":"","timestamp":"2013-12-18T01:08:29.078Z"}
+{"level":"error","message":"couldnt create statistic","timestamp":"2013-12-18T01:09:09.564Z"}
+{"name":"error","length":100,"severity":"ERROR","code":"22003","file":"numutils.c","line":"75","routine":"pg_atoi","level":"error","message":"","timestamp":"2013-12-18T01:09:09.566Z"}

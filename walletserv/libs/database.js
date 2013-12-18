@@ -316,8 +316,8 @@ function database() {
 			}
 		});
 	}
-
-	this.stats.create = function(type, metadata, data, timestamp, callback) {
+	this.stats = {};
+	this.stats.create = function(type, metadata, data, callback) {
 		winston.log('db', 'Creating statistic entry');
 		connect(function(err, done, client) {
 			if (err) {
@@ -325,7 +325,7 @@ function database() {
 				done();
 			} else {
 
-				client.query("insert into statistics values (type, metadata, data, date);", [type, metadata, data, timestamp], function(err, res) {
+				client.query("insert into statistics (type, metadata, data, date) values ($1, $2, $3, now());", [type, metadata, data], function(err, res) {
 					callback(err, res);
 					done();
 				});
